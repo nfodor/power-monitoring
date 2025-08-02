@@ -1,0 +1,41 @@
+{
+  "unit_id": "ups_setip-pi5-15gb-daring-cloud_d71932",
+  "auth_key": "FL2yjYnN_a4PkqFVF8wRpSgyEtpSZ2oL6J396amw_go",
+  "bypass_servers": [
+    {
+      "url": "http://10.0.0.1:8080",
+      "priority": 1,
+      "enabled": true,
+      "registration_status": "pending",
+      "last_success": null,
+      "last_error": null,
+      "total_notifications": 0,
+      "success_count": 0
+    },
+    {
+      "url": "http://172.16.0.1:8080",
+      "priority": 2,
+      "enabled": true,
+      "registration_status": "pending",
+      "last_success": null,
+      "last_error": null,
+      "total_notifications": 0,
+      "success_count": 0
+    },
+    {
+      "url": "http://192.168.1.1:8080",
+      "priority": 3,
+      "enabled": true,
+      "registration_status": "pending",
+      "last_success": null,
+      "last_error": null,
+      "total_notifications": 0,
+      "success_count": 0
+    }
+  ],
+  "health_heartbeat_interval": 60,
+  "notification_timeout": 5,
+  "max_retry_attempts": 3,
+  "created": "2025-07-31T09:18:20.105973",
+  "last_health_broadcast": null
+}

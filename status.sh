@@ -1,0 +1,22 @@
+#!/bin/bash
+
+echo "🔋 X1200 Power Monitor Status Summary"
+echo "===================================="
+echo ""
+echo "📊 Dashboard Service: $(systemctl is-active power-dashboard.service)"
+echo "   Port: 9434" 
+echo "   URL: http://$(hostname -I | awk '{print $1}'):9434"
+echo ""
+echo "📝 Available Scripts:"
+ls -1 /home/pi/dev/power/*.py | grep -E "(x1200|system|dashboard)" | sed 's|/home/pi/dev/power/|   |'
+echo ""
+echo "🔧 Management Commands:"
+echo "   sudo systemctl status power-dashboard.service"
+echo "   sudo systemctl restart power-dashboard.service"
+echo "   ./power-monitor.sh status"
+echo "   ./power-monitor.sh diagnose"
+echo ""
+echo "📡 I2C Detection:"
+echo "   sudo i2cdetect -y 1"
+echo "   sudo i2cdetect -y 11"
+echo "   python3 x1200_diagnostics.py"

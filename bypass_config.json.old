@@ -1,0 +1,12 @@
+{
+  "unit_id": "ups_setip-pi5-15gb-daring-cloud_d71932",
+  "auth_key": "tOtaClPodJ0l_It3yvKnoVUJB-eJt-BzqZycSeW4zaA",
+  "bypass_server_urls": [
+    "http://10.0.0.1:8080",
+    "http://172.16.0.1:8080",
+    "http://192.168.1.1:8080"
+  ],
+  "created": "2025-07-31T09:07:24.591453",
+  "registration_status": "pending",
+  "last_notification": null
+}

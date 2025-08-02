@@ -1,0 +1,2741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edge Cloud Worker Monitor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-gauge@0.3.0/dist/chartjs-gauge.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-ticker: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
+            --accent-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --blue-color: #3b82f6;
+            --purple-color: #8b5cf6;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #334155;
+            --bg-ticker: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #64748b;
+            --border-color: #475569;
+            --accent-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --blue-color: #3b82f6;
+            --purple-color: #8b5cf6;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+        }
+        
+        html, body {
+            overflow-x: hidden;
+            width: 100%;
+            max-width: 100vw;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .header {
+            background: var(--bg-secondary);
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .header-logo {
+            width: 40px;
+            height: auto;
+            flex-shrink: 0;
+        }
+        
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .header p {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        
+        .theme-toggle {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .theme-toggle:hover {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+        
+        /* Power Status Indicators (Top) */
+        .power-indicators {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 8px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+        }
+        
+        .power-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+        
+        .power-icon {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+        
+        .power-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .power-status {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .power-level {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+        
+        .power-indicator.external-power .power-icon {
+            color: var(--accent-color);
+        }
+        
+        .power-indicator.battery-power .power-icon {
+            color: var(--warning-color);
+        }
+        
+        .power-indicator.charging .power-icon {
+            color: var(--blue-color);
+            animation: pulse 2s infinite;
+        }
+        
+        .power-indicator.not-charging .power-icon {
+            color: var(--text-muted);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Ticker Tape */
+        .ticker-container {
+            background: var(--bg-ticker);
+            border-bottom: 1px solid var(--border-color);
+            overflow: hidden;
+            height: 40px;
+            position: relative;
+        }
+        
+        .ticker-tape {
+            display: flex;
+            animation: scroll 30s linear infinite;
+            height: 100%;
+            align-items: center;
+            white-space: nowrap;
+        }
+        
+        .ticker-item {
+            display: flex;
+            align-items: center;
+            margin-right: 40px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .ticker-label {
+            color: var(--text-muted);
+            margin-right: 6px;
+        }
+        
+        .ticker-value {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
+        .ticker-unit {
+            color: var(--text-secondary);
+            font-size: 11px;
+            margin-left: 2px;
+        }
+        
+        @keyframes scroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        
+        /* Alert Ticker */
+        .alert-ticker-container {
+            background: var(--danger-color);
+            border-bottom: 1px solid var(--border-color);
+            overflow: hidden;
+            height: 32px;
+            position: relative;
+            display: none;
+        }
+        
+        .alert-ticker-container.warning {
+            background: var(--warning-color);
+        }
+        
+        .alert-ticker-container.active {
+            display: block;
+        }
+        
+        .alert-ticker-tape {
+            display: flex;
+            animation: scroll 20s linear infinite;
+            height: 100%;
+            align-items: center;
+            white-space: nowrap;
+        }
+        
+        .alert-ticker-item {
+            display: flex;
+            align-items: center;
+            margin-right: 30px;
+            font-size: 11px;
+            font-weight: 600;
+            color: white;
+            text-transform: uppercase;
+        }
+        
+        /* Pushbullet Settings */
+        .settings-toggle {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 12px;
+            font-weight: 500;
+            margin-right: 8px;
+        }
+        
+        .settings-toggle:hover {
+            background: var(--blue-color);
+            color: white;
+            border-color: var(--blue-color);
+        }
+        
+        .settings-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .settings-modal.active {
+            display: flex;
+        }
+        
+        .settings-content {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+        }
+        
+        .settings-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+        
+        .settings-field {
+            margin-bottom: 16px;
+        }
+        
+        .settings-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .settings-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+        
+        .settings-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        
+        .settings-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .settings-btn.primary {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+        
+        .settings-btn.secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+        
+        /* Bypass Server Settings Styles */
+        .settings-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+        
+        .settings-tab {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+        
+        .settings-tab.active {
+            color: var(--accent-color);
+            border-bottom-color: var(--accent-color);
+        }
+        
+        .settings-tab:hover {
+            color: var(--text-primary);
+        }
+        
+        .bypass-info-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .bypass-info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .info-label {
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+        
+        .info-value {
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        
+        .bypass-servers-section {
+            margin: 20px 0;
+        }
+        
+        .servers-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .servers-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: var(--text-primary);
+        }
+        
+        .servers-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-small.primary {
+            background: var(--blue-color);
+            color: white;
+            border-color: var(--blue-color);
+        }
+        
+        .btn-small.secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+        
+        .btn-small.accent {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+        
+        .btn-small.danger {
+            background: var(--danger-color);
+            color: white;
+            border-color: var(--danger-color);
+        }
+        
+        .servers-list {
+            space: 12px;
+        }
+        
+        .server-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        .server-item:hover {
+            border-color: var(--accent-color);
+        }
+        
+        .server-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .server-url {
+            font-family: monospace;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .server-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .server-status.active {
+            background: var(--accent-color);
+            color: white;
+        }
+        
+        .server-status.pending {
+            background: var(--warning-color);
+            color: white;
+        }
+        
+        .server-status.failed {
+            background: var(--danger-color);
+            color: white;
+        }
+        
+        .server-status.disabled {
+            background: var(--text-muted);
+            color: white;
+        }
+        
+        .server-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .server-detail {
+            text-align: center;
+        }
+        
+        .server-detail-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        
+        .server-detail-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .server-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        
+        .test-results {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+        }
+        
+        .test-summary {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding: 8px;
+            background: var(--bg-primary);
+            border-radius: 4px;
+        }
+        
+        .test-details {
+            space: 8px;
+        }
+        
+        .test-result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            margin-bottom: 4px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .test-result-item.success {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 3px solid var(--accent-color);
+        }
+        
+        .test-result-item.failed {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 3px solid var(--danger-color);
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .status-bar {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            margin: 20px;
+            border-radius: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .status-item {
+            text-align: center;
+            min-width: 150px;
+        }
+        
+        .status-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .status-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+                padding: 10px;
+                gap: 15px;
+            }
+        }
+        
+        .chart-card {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .chart-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+        }
+        
+        .gauges-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .gauge-card {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .gauge-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-1px);
+        }
+        
+        .gauge-title {
+            font-size: 11px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .gauge-value {
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 6px;
+            color: var(--text-primary);
+        }
+        
+        .gauge-unit {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 2px;
+            font-weight: 500;
+        }
+        
+        .gauge-tooltip {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            box-shadow: var(--shadow);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 10;
+            border: 1px solid var(--border-color);
+        }
+        
+        .gauge-card:hover .gauge-tooltip {
+            opacity: 1;
+        }
+        
+        .per-core-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 3px;
+            margin-top: 4px;
+            margin-bottom: 2px;
+        }
+        
+        .core-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            background: var(--text-muted);
+            transition: background-color 0.3s ease;
+            position: relative;
+        }
+        
+        .core-indicator.core-low {
+            background: #10b981;
+        }
+        
+        .core-indicator.core-medium {
+            background: #f59e0b;
+        }
+        
+        .core-indicator.core-high {
+            background: #ef4444;
+        }
+        
+        .core-indicator::after {
+            content: attr(data-core);
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 8px;
+            color: var(--text-muted);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .core-indicator:hover::after {
+            opacity: 1;
+        }
+        
+        .chart-title {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        .alerts-panel {
+            background: rgba(255,0,0,0.2);
+            border: 2px solid #ff4444;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px;
+            display: none;
+        }
+        
+        .alerts-panel.active {
+            display: block;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { border-color: #ff4444; }
+            50% { border-color: #ff8888; }
+            100% { border-color: #ff4444; }
+        }
+        
+        .alert-item {
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border-left: 4px solid #ff4444;
+        }
+        
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+                margin: 10px;
+                gap: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .critical-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .critical-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .header {
+                padding: 12px 16px;
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+            
+            .header h1 {
+                font-size: 18px;
+            }
+            
+            .power-indicators {
+                flex-direction: column;
+                gap: 15px;
+                padding: 12px;
+            }
+            
+            .power-indicator {
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .critical-grid {
+                grid-template-columns: 1fr;
+                margin: 10px;
+            }
+            
+            .power-indicators {
+                gap: 10px;
+                padding: 8px;
+            }
+            
+            .power-indicator {
+                font-size: 12px;
+            }
+            
+            .gauges-container {
+                grid-template-columns: repeat(2, 1fr);
+                padding: 10px;
+                gap: 8px;
+            }
+        }
+        
+        .metric-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+        }
+        
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 2px;
+            line-height: 1;
+        }
+        
+        .metric-unit {
+            font-size: 0.8em;
+            font-weight: normal;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        
+        .metric-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .metric-trend {
+            font-size: 0.8em;
+            margin-top: 10px;
+        }
+        
+        .trend-up { color: #ff6b6b; }
+        .trend-down { color: #4ecdc4; }
+        .trend-stable { color: #ffe66d; }
+        
+        .x1200-info-banner {
+            background: linear-gradient(135deg, rgba(72, 118, 255, 0.1) 0%, rgba(255, 174, 0, 0.1) 100%);
+            border: 2px solid rgba(72, 118, 255, 0.3);
+            border-radius: 15px;
+            margin: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .info-content h3 {
+            color: #4876ff;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+        
+        .info-content p {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+        
+        .info-content ul {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+        
+        .info-content li {
+            margin: 8px 0;
+            line-height: 1.4;
+        }
+        
+        .info-content code {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        .diagnostic-links {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .diagnostic-btn {
+            background: rgba(72, 118, 255, 0.8);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .diagnostic-btn:hover {
+            background: rgba(72, 118, 255, 1);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <img class="header-logo" src="setip-logo.png" alt="Setip.io Logo">
+            <div>
+                <h1>Edge Cloud Worker Monitor</h1>
+                <p>Real-time system monitoring</p>
+            </div>
+        </div>
+        <div>
+            <button class="settings-toggle" onclick="toggleSettings()">Settings</button>
+            <button class="theme-toggle" onclick="toggleTheme()">Dark Mode</button>
+        </div>
+    </div>
+    
+    <!-- Power Status Indicators -->
+    <div class="power-indicators">
+        <div class="power-indicator" id="externalPowerIndicator">
+            <div class="power-icon" id="externalPowerIcon">⚡</div>
+            <div>
+                <div class="power-label">External Power</div>
+                <div class="power-status" id="externalPowerStatus">--</div>
+            </div>
+        </div>
+        <div class="power-indicator" id="chargingIndicator">
+            <div class="power-icon" id="chargingIcon">⚡</div>
+            <div>
+                <div class="power-label">Charging</div>
+                <div class="power-status" id="chargingStatus">--</div>
+                <div class="power-level" id="chargingLevel">--</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ticker Tape -->
+    <div class="ticker-container">
+        <div class="ticker-tape" id="tickerTape">
+            <div class="ticker-item">
+                <span class="ticker-label">CPU:</span>
+                <span class="ticker-value" id="tickerCpu">--</span>
+                <span class="ticker-unit">%</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-label">TEMP:</span>
+                <span class="ticker-value" id="tickerTemp">--</span>
+                <span class="ticker-unit">°C</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-label">MEMORY:</span>
+                <span class="ticker-value" id="tickerMemory">--</span>
+                <span class="ticker-unit">%</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-label">POWER:</span>
+                <span class="ticker-value" id="tickerPower">--</span>
+                <span class="ticker-unit">W</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-label">BATTERY:</span>
+                <span class="ticker-value" id="tickerBattery">--</span>
+                <span class="ticker-unit">%</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-label">STATUS:</span>
+                <span class="ticker-value" id="tickerStatus">--</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-label">LOAD:</span>
+                <span class="ticker-value" id="tickerLoad">--</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-label">CURRENT:</span>
+                <span class="ticker-value" id="tickerCurrent">--</span>
+                <span class="ticker-unit">A</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Alert Ticker -->
+    <div class="alert-ticker-container" id="alertTicker">
+        <div class="alert-ticker-tape" id="alertTickerTape">
+            <!-- Alerts will be populated here -->
+        </div>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div class="settings-modal" id="settingsModal">
+        <div class="settings-content">
+            <!-- Settings Tabs -->
+            <div class="settings-tabs">
+                <button class="settings-tab active" onclick="showSettingsTab('alerts')">Alerts</button>
+                <button class="settings-tab" onclick="showSettingsTab('bypass')">Bypass Servers</button>
+            </div>
+            
+            <!-- Alert Settings Tab -->
+            <div class="settings-tab-content" id="alertsTab">
+                <div class="settings-title">Alert Settings</div>
+                <div class="settings-field">
+                    <label class="settings-label">Pushbullet API Key</label>
+                    <input type="password" class="settings-input" id="pushbulletKey" placeholder="Enter your Pushbullet API key">
+                </div>
+                <div class="settings-field">
+                    <label class="settings-label">Critical Alert Threshold</label>
+                    <input type="number" class="settings-input" id="criticalThreshold" placeholder="85" value="85">
+                    <small style="color: var(--text-muted); font-size: 11px;">CPU/Memory/Temperature percentage threshold</small>
+                </div>
+            </div>
+            
+            <!-- Bypass Server Settings Tab -->
+            <div class="settings-tab-content" id="bypassTab" style="display: none;">
+                <div class="settings-title">Bypass Server Configuration</div>
+                
+                <!-- System Info -->
+                <div class="bypass-info-panel">
+                    <div class="bypass-info-item">
+                        <span class="info-label">Unit ID:</span>
+                        <span class="info-value" id="unitId">Loading...</span>
+                    </div>
+                    <div class="bypass-info-item">
+                        <span class="info-label">Auth Key:</span>
+                        <span class="info-value" id="authKey">Loading...</span>
+                    </div>
+                    <div class="bypass-info-item">
+                        <span class="info-label">WireGuard IP:</span>
+                        <span class="info-value" id="wireguardIp">Loading...</span>
+                    </div>
+                    <div class="bypass-info-item">
+                        <span class="info-label">Last Heartbeat:</span>
+                        <span class="info-value" id="lastHeartbeat">Loading...</span>
+                    </div>
+                </div>
+                
+                <!-- Global Settings -->
+                <div class="settings-field">
+                    <label class="settings-label">Health Heartbeat Interval (seconds)</label>
+                    <input type="number" class="settings-input" id="heartbeatInterval" min="30" max="3600" value="60">
+                    <small style="color: var(--text-muted); font-size: 11px;">How often to send health data to bypass servers</small>
+                </div>
+                
+                <div class="settings-field">
+                    <label class="settings-label">Notification Timeout (seconds)</label>
+                    <input type="number" class="settings-input" id="notificationTimeout" min="1" max="30" value="5">
+                    <small style="color: var(--text-muted); font-size: 11px;">How long to wait for server responses</small>
+                </div>
+                
+                <!-- Server List -->
+                <div class="bypass-servers-section">
+                    <div class="servers-header">
+                        <h3>Bypass Servers</h3>
+                        <div class="servers-actions">
+                            <button class="btn-small secondary" onclick="testAllServers()">Test All</button>
+                            <button class="btn-small primary" onclick="forceRegister()">Re-register</button>
+                            <button class="btn-small accent" onclick="addServer()">Add Server</button>
+                        </div>
+                    </div>
+                    
+                    <div class="servers-list" id="serversList">
+                        <!-- Servers will be loaded dynamically -->
+                    </div>
+                </div>
+                
+                <!-- Test Results -->
+                <div class="test-results" id="testResults" style="display: none;">
+                    <h4>Test Results</h4>
+                    <div class="test-summary" id="testSummary"></div>
+                    <div class="test-details" id="testDetails"></div>
+                </div>
+            </div>
+            
+            <div class="settings-buttons">
+                <button class="settings-btn secondary" onclick="closeSettings()">Cancel</button>
+                <button class="settings-btn primary" onclick="saveSettings()">Save</button>
+            </div>
+        </div>
+    </div>
+    
+    
+    
+    <!-- Real-time Circular Gauges -->
+    <div class="gauges-container">
+        <div class="gauge-card">
+            <div class="gauge-tooltip" id="batteryTooltip">Battery: --% (-- V)</div>
+            <div class="gauge-title">Battery</div>
+            <canvas id="batteryGauge" width="90" height="90"></canvas>
+            <div class="gauge-value" id="batteryGaugeValue">--</div>
+            <div class="gauge-unit">%</div>
+        </div>
+        
+        <div class="gauge-card">
+            <div class="gauge-tooltip" id="cpuTooltip">CPU Usage: --%</div>
+            <div class="gauge-title">CPU</div>
+            <canvas id="cpuGauge" width="90" height="90"></canvas>
+            <div class="per-core-indicators" id="perCoreIndicators">
+                <!-- Per-core indicators will be populated by JavaScript -->
+            </div>
+            <div class="gauge-value" id="cpuGaugeValue">--</div>
+            <div class="gauge-unit">%</div>
+        </div>
+        
+        <div class="gauge-card">
+            <div class="gauge-tooltip" id="temperatureTooltip">Temperature: --°C</div>
+            <div class="gauge-title">Temp</div>
+            <canvas id="tempGauge" width="90" height="90"></canvas>
+            <div class="gauge-value" id="temperatureGaugeValue">--</div>
+            <div class="gauge-unit">°C</div>
+        </div>
+        
+        <div class="gauge-card">
+            <div class="gauge-tooltip" id="powerTooltip">Power: --W (-- mW)</div>
+            <div class="gauge-title">Power</div>
+            <canvas id="powerGauge" width="90" height="90"></canvas>
+            <div class="gauge-value" id="powerGaugeValue">--</div>
+            <div class="gauge-unit">W</div>
+        </div>
+        
+        <div class="gauge-card">
+            <div class="gauge-tooltip" id="loadTooltip">Load Average: --</div>
+            <div class="gauge-title">Load</div>
+            <canvas id="loadGauge" width="90" height="90"></canvas>
+            <div class="gauge-value" id="loadGaugeValue">--</div>
+            <div class="gauge-unit">avg</div>
+        </div>
+        
+        <div class="gauge-card">
+            <div class="gauge-tooltip" id="memoryTooltip">Memory: --% (-- GB)</div>
+            <div class="gauge-title">Memory</div>
+            <canvas id="memoryGauge" width="90" height="90"></canvas>
+            <div class="gauge-value" id="memoryGaugeValue">--</div>
+            <div class="gauge-unit">%</div>
+        </div>
+    </div>
+    
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-value" id="cpuValue">--</div>
+            <div class="metric-unit" id="cpuUnit">%</div>
+            <div class="metric-label">CPU Usage</div>
+            <div class="metric-trend" id="cpuTrend"></div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value" id="tempValue">--</div>
+            <div class="metric-unit" id="tempUnit">°C</div>
+            <div class="metric-label">CPU Temperature</div>
+            <div class="metric-trend" id="tempTrend"></div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value" id="memoryValue">--</div>
+            <div class="metric-unit" id="memoryUnit">%</div>
+            <div class="metric-label">Memory Usage</div>
+            <div class="metric-trend" id="memoryTrend"></div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value" id="loadValue">--</div>
+            <div class="metric-unit" id="loadUnit">avg</div>
+            <div class="metric-label">System Load</div>
+            <div class="metric-trend" id="loadTrend"></div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value" id="fanValue">--</div>
+            <div class="metric-unit" id="fanUnit">RPM</div>
+            <div class="metric-label">Fan Speed</div>
+            <div class="metric-trend" id="fanTrend"></div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value" id="busVoltageValue">--</div>
+            <div class="metric-unit" id="busVoltageUnit">V</div>
+            <div class="metric-label">Bus Voltage</div>
+            <div class="metric-trend" id="busVoltageTrend"></div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value" id="currentValue">--</div>
+            <div class="metric-unit" id="currentUnit">A</div>
+            <div class="metric-label">Current</div>
+            <div class="metric-trend" id="currentTrend"></div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value" id="powerValue">--</div>
+            <div class="metric-unit" id="powerUnit">W</div>
+            <div class="metric-label">Power</div>
+            <div class="metric-trend" id="powerTrend"></div>
+        </div>
+    </div>
+    
+    <!-- X1200-specific indicators (hidden when hardware not present) -->
+    <div class="metrics-grid" id="x1200Metrics" style="display: none;">
+        <div class="metric-card">
+            <div class="metric-value" id="batteryPercentValue">--</div>
+            <div class="metric-unit" id="batteryPercentUnit">%</div>
+            <div class="metric-label">⚡ Battery Level</div>
+            <div class="metric-trend" id="batteryPercentTrend"></div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value" id="batteryVoltageValue">--</div>
+            <div class="metric-unit" id="batteryVoltageUnit">V</div>
+            <div class="metric-label">⚡ Battery Voltage</div>
+            <div class="metric-trend" id="batteryVoltageTrend"></div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value" id="inputCurrentValue">--</div>
+            <div class="metric-unit" id="inputCurrentUnit">A</div>
+            <div class="metric-label">⚡ Input Current</div>
+            <div class="metric-trend" id="inputCurrentTrend"></div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value" id="chargingCurrentValue">--</div>
+            <div class="metric-unit" id="chargingCurrentUnit">A</div>
+            <div class="metric-label">⚡ Charging Current</div>
+            <div class="metric-trend" id="chargingCurrentTrend"></div>
+        </div>
+    </div>
+    
+    <!-- X1200 Hardware Information Banner -->
+    <div id="x1200InfoBanner" class="x1200-info-banner" style="display: block;">
+        <div class="info-content">
+            <h3>⚡ Enhanced Power Monitoring Available</h3>
+            <p>Connect a <strong>Geekworm X1200 UPS HAT</strong> to unlock additional power monitoring features:</p>
+            <ul>
+                <li>⚡ Real-time battery level and voltage</li>
+                <li>⚡ Power source detection (USB-C vs Battery)</li>
+                <li>⚡ Charging status monitoring</li>
+                <li>⚠ Power loss event detection</li>
+                <li>▲ Advanced power management analytics</li>
+            </ul>
+            <p><strong>Setup:</strong> Enable I2C in <code>sudo raspi-config</code> → Interface Options → I2C</p>
+            <div class="diagnostic-links">
+                <button onclick="runDiagnostics()" class="diagnostic-btn">⚙ Run Hardware Diagnostics</button>
+                <a href="/logs" class="diagnostic-btn">≡ View System Logs</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Critical Indicators Section -->
+    <div class="critical-section" id="criticalSection" style="margin: 20px; display: none;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;" class="critical-grid">
+            
+            <!-- Critical Score -->
+            <div class="metric-card" style="background: rgba(255,0,0,0.2); border: 2px solid #ff4444;">
+                <div class="metric-value" id="criticalScore">--</div>
+                <div class="metric-label">⚠ Critical Score</div>
+                <div id="criticalWarnings" style="margin-top: 10px; font-size: 0.8em;"></div>
+            </div>
+            
+            <!-- Top CPU Processes -->
+            <div class="chart-card">
+                <div class="chart-title">▲ High CPU Processes</div>
+                <div id="topCpuProcesses" style="font-family: monospace; font-size: 0.9em; max-height: 200px; overflow-y: auto;"></div>
+            </div>
+            
+            <!-- Recent System Errors -->
+            <div class="chart-card">
+                <div class="chart-title">× Recent System Errors</div>
+                <div id="systemErrors" style="font-family: monospace; font-size: 0.8em; max-height: 200px; overflow-y: auto;"></div>
+            </div>
+            
+            <!-- Kernel Messages -->
+            <div class="chart-card">
+                <div class="chart-title">⚠ Kernel Messages</div>
+                <div id="kernelMessages" style="font-family: monospace; font-size: 0.8em; max-height: 200px; overflow-y: auto;"></div>
+            </div>
+            
+        </div>
+    </div>
+
+    <div class="charts-container">
+        <div class="chart-card">
+            <div class="chart-title">CPU Usage & Temperature</div>
+            <div class="chart-container">
+                <canvas id="cpuChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-title">Memory & System Load</div>
+            <div class="chart-container">
+                <canvas id="memoryChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-title">Power Trends (Last Hour)</div>
+            <div class="chart-container">
+                <canvas id="powerChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-title">System Health Score</div>
+            <div class="chart-container">
+                <canvas id="healthChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Process Monitor Chart -->
+        <div class="chart-card">
+            <div class="chart-title">▲ Process Activity</div>
+            <div class="chart-container">
+                <canvas id="processChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Error Timeline Chart -->
+        <div class="chart-card">
+            <div class="chart-title">⚠ Error Timeline</div>
+            <div class="chart-container">
+                <canvas id="errorChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let charts = {};
+        let gauges = {};
+        let dataHistory = [];
+        let maxDataPoints = 60; // 5 minutes at 5-second intervals
+        let previousValues = {};
+        let criticalData = null;
+        
+        // Smart unit formatting
+        function formatValue(value, type) {
+            if (value === null || value === undefined) return '--';
+            
+            switch(type) {
+                case 'power':
+                    if (value >= 1000) return Math.round(value / 1000);
+                    return Math.round(value);
+                case 'current':
+                    if (value >= 1000) return Math.round(value / 1000);
+                    return Math.round(value);
+                case 'percentage':
+                    return Math.round(value);
+                case 'temperature':
+                    return Math.round(value);
+                case 'load':
+                    return value.toFixed(1);
+                default:
+                    return Math.round(value);
+            }
+        }
+        
+        // Update ticker tape
+        function updateTicker(data) {
+            document.getElementById('tickerCpu').textContent = formatValue(data.cpu_percent, 'percentage');
+            document.getElementById('tickerTemp').textContent = formatValue(data.cpu_temp, 'temperature');
+            document.getElementById('tickerMemory').textContent = formatValue(data.memory_percent, 'percentage');
+            document.getElementById('tickerLoad').textContent = formatValue(data.load_avg, 'load');
+            
+            if (data.x1200_data) {
+                const powerW = data.x1200_data.power / 1000;
+                const currentA = data.x1200_data.current / 1000;
+                document.getElementById('tickerPower').textContent = formatValue(powerW, 'power');
+                document.getElementById('tickerCurrent').textContent = formatValue(currentA, 'current');
+                // Use real battery percentage, capping display at 100% for UI
+                const batteryPct = data.x1200_data.battery_percentage;
+                const displayPct = batteryPct ? Math.min(100, batteryPct).toFixed(0) : '--';
+                document.getElementById('tickerBattery').textContent = displayPct;
+                document.getElementById('tickerStatus').textContent = data.x1200_data.is_charging ? 'CHARGING' : 
+                    (data.x1200_data.has_external_power ? 'POWERED' : 'BATTERY');
+            }
+        }
+        
+        // Theme management
+        function toggleTheme() {
+            const body = document.body;
+            const button = document.querySelector('.theme-toggle');
+            
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+                button.innerHTML = 'Dark Mode';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                button.innerHTML = 'Light Mode';
+                localStorage.setItem('theme', 'dark');
+            }
+            
+            updateGaugeThemes();
+        }
+        
+        // Load saved theme
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const button = document.querySelector('.theme-toggle');
+            
+            if (savedTheme === 'dark') {
+                document.body.setAttribute('data-theme', 'dark');
+                button.innerHTML = 'Light Mode';
+            } else {
+                button.innerHTML = 'Dark Mode';
+            }
+        }
+        
+        // Chart configurations
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: { color: 'white' }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: 'white' },
+                    grid: { color: 'rgba(255,255,255,0.1)' }
+                },
+                y: {
+                    ticks: { color: 'white' },
+                    grid: { color: 'rgba(255,255,255,0.1)' }
+                }
+            },
+            animation: { duration: 0 }
+        };
+        
+        // Initialize circular gauges
+        function initGauges() {
+            // Battery gauge
+            gauges.battery = new Chart(document.getElementById('batteryGauge'), {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [0, 100],
+                        backgroundColor: ['#4CAF50', '#2c2c2c'],
+                        borderWidth: 0,
+                        cutout: '75%'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } },
+                    rotation: -90,
+                    circumference: 180
+                }
+            });
+            
+            // CPU Usage gauge
+            gauges.cpu = new Chart(document.getElementById('cpuGauge'), {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [0, 100],
+                        backgroundColor: ['#FF6B6B', '#2c2c2c'],
+                        borderWidth: 0,
+                        cutout: '75%'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } },
+                    rotation: -90,
+                    circumference: 180
+                }
+            });
+            
+            // Temperature gauge
+            gauges.temperature = new Chart(document.getElementById('tempGauge'), {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [0, 85],
+                        backgroundColor: ['#FFA726', '#2c2c2c'],
+                        borderWidth: 0,
+                        cutout: '75%'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } },
+                    rotation: -90,
+                    circumference: 180
+                }
+            });
+            
+            // Power gauge
+            gauges.power = new Chart(document.getElementById('powerGauge'), {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [0, 20],
+                        backgroundColor: ['#4ECDC4', '#2c2c2c'],
+                        borderWidth: 0,
+                        cutout: '75%'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } },
+                    rotation: -90,
+                    circumference: 180
+                }
+            });
+            
+            // Load gauge
+            gauges.load = new Chart(document.getElementById('loadGauge'), {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [0, 8],
+                        backgroundColor: ['#FFE66D', '#2c2c2c'],
+                        borderWidth: 0,
+                        cutout: '75%'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } },
+                    rotation: -90,
+                    circumference: 180
+                }
+            });
+            
+            // Memory gauge
+            gauges.memory = new Chart(document.getElementById('memoryGauge'), {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [0, 100],
+                        backgroundColor: ['#A8E6CF', '#2c2c2c'],
+                        borderWidth: 0,
+                        cutout: '75%'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } },
+                    rotation: -90,
+                    circumference: 180
+                }
+            });
+        }
+        
+        // Update gauge themes
+        function updateGaugeThemes() {
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+            const bgColor = isDark ? '#1a1a2e' : '#2c2c2c';
+            
+            Object.values(gauges).forEach(gauge => {
+                if (gauge && gauge.data && gauge.data.datasets[0]) {
+                    gauge.data.datasets[0].backgroundColor[1] = bgColor;
+                    gauge.update('none');
+                }
+            });
+        }
+        
+        // Settings management
+        function toggleSettings() {
+            const modal = document.getElementById('settingsModal');
+            modal.classList.add('active');
+            
+            // Load existing settings
+            const savedKey = localStorage.getItem('pushbulletKey');
+            const savedThreshold = localStorage.getItem('criticalThreshold') || '85';
+            
+            if (savedKey) document.getElementById('pushbulletKey').value = savedKey;
+            document.getElementById('criticalThreshold').value = savedThreshold;
+        }
+        
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('active');
+        }
+        
+        function saveSettings() {
+            const key = document.getElementById('pushbulletKey').value;
+            const threshold = document.getElementById('criticalThreshold').value;
+            
+            localStorage.setItem('pushbulletKey', key);
+            localStorage.setItem('criticalThreshold', threshold);
+            
+            // Save bypass server settings if on bypass tab
+            if (document.getElementById('bypassTab').style.display !== 'none') {
+                saveBypassSettings();
+            }
+            
+            closeSettings();
+            
+            if (key) {
+                console.log('Pushbullet alerts enabled');
+            }
+        }
+        
+        // Bypass Server Management Functions
+        function showSettingsTab(tabName) {
+            // Hide all tabs
+            document.getElementById('alertsTab').style.display = 'none';
+            document.getElementById('bypassTab').style.display = 'none';
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.settings-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab and mark button as active
+            if (tabName === 'alerts') {
+                document.getElementById('alertsTab').style.display = 'block';
+                document.querySelector('.settings-tab[onclick="showSettingsTab(\'alerts\')"]').classList.add('active');
+            } else if (tabName === 'bypass') {
+                document.getElementById('bypassTab').style.display = 'block';
+                document.querySelector('.settings-tab[onclick="showSettingsTab(\'bypass\')"]').classList.add('active');
+                loadBypassServerData();
+            }
+        }
+        
+        async function loadBypassServerData() {
+            try {
+                const response = await fetch('/api/bypass-servers');
+                const data = await response.json();
+                
+                // Update system info
+                document.getElementById('unitId').textContent = data.unit_id || 'N/A';
+                document.getElementById('authKey').textContent = data.auth_key || 'N/A';
+                document.getElementById('wireguardIp').textContent = data.wireguard_status.local_ip || 'N/A';
+                document.getElementById('lastHeartbeat').textContent = data.last_health_broadcast 
+                    ? new Date(data.last_health_broadcast).toLocaleString() 
+                    : 'Never';
+                
+                // Update global settings
+                document.getElementById('heartbeatInterval').value = data.health_heartbeat_interval || 60;
+                document.getElementById('notificationTimeout').value = data.notification_timeout || 5;
+                
+                // Render servers list
+                renderServersList(data.servers || []);
+                
+            } catch (error) {
+                console.error('Error loading bypass server data:', error);
+                document.getElementById('serversList').innerHTML = '<p style="color: var(--danger-color);">Error loading server data</p>';
+            }
+        }
+        
+        function renderServersList(servers) {
+            const serversList = document.getElementById('serversList');
+            
+            if (servers.length === 0) {
+                serversList.innerHTML = '<p style="color: var(--text-muted);">No servers configured</p>';
+                return;
+            }
+            
+            serversList.innerHTML = servers.map((server, index) => `
+                <div class="server-item">
+                    <div class="server-header">
+                        <div class="server-url">${server.url}</div>
+                        <div class="server-status ${server.registration_status}">
+                            ${server.registration_status.toUpperCase()}
+                        </div>
+                    </div>
+                    <div class="server-details">
+                        <div class="server-detail">
+                            <div class="server-detail-label">Priority</div>
+                            <div class="server-detail-value">${server.priority}</div>
+                        </div>
+                        <div class="server-detail">
+                            <div class="server-detail-label">Success Rate</div>
+                            <div class="server-detail-value">${server.success_rate.toFixed(1)}%</div>
+                        </div>
+                        <div class="server-detail">
+                            <div class="server-detail-label">Total Requests</div>
+                            <div class="server-detail-value">${server.total_notifications}</div>
+                        </div>
+                    </div>
+                    <div class="server-actions">
+                        <button class="btn-small secondary" onclick="editServer(${index})">Edit</button>
+                        <button class="btn-small ${server.enabled ? 'secondary' : 'accent'}" onclick="toggleServer(${index})">
+                            ${server.enabled ? 'Disable' : 'Enable'}
+                        </button>
+                        <button class="btn-small danger" onclick="removeServer(${index})">Remove</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function testAllServers() {
+            try {
+                const response = await fetch('/api/bypass-servers/test');
+                const results = await response.json();
+                
+                // Show test results
+                document.getElementById('testResults').style.display = 'block';
+                document.getElementById('testSummary').innerHTML = `
+                    <div><strong>Total Servers:</strong> ${results.total_servers}</div>
+                    <div><strong>Successful:</strong> ${results.successful}</div>
+                    <div><strong>Failed:</strong> ${results.failed}</div>
+                `;
+                
+                document.getElementById('testDetails').innerHTML = results.server_results.map(result => `
+                    <div class="test-result-item ${result.success ? 'success' : 'failed'}">
+                        <span>${result.url}</span>
+                        <span>${result.success ? '✓ ' + (result.response_time * 1000).toFixed(0) + 'ms' : '✗ ' + result.error}</span>
+                    </div>
+                `).join('');
+                
+                // Reload server data to show updated stats
+                loadBypassServerData();
+                
+            } catch (error) {
+                console.error('Error testing servers:', error);
+                alert('Error testing servers: ' + error.message);
+            }
+        }
+        
+        async function forceRegister() {
+            try {
+                const response = await fetch('/api/bypass-servers/force-register');
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Registration successful!');
+                } else {
+                    alert('Registration failed - check server connectivity');
+                }
+                
+                // Reload server data
+                loadBypassServerData();
+                
+            } catch (error) {
+                console.error('Error registering:', error);
+                alert('Error during registration: ' + error.message);
+            }
+        }
+        
+        function addServer() {
+            const url = prompt('Enter bypass server URL:', 'http://10.0.0.1:8080');
+            if (url && url.trim()) {
+                // Get current servers and add new one
+                fetch('/api/bypass-servers')
+                    .then(response => response.json())
+                    .then(data => {
+                        const servers = data.servers || [];
+                        servers.push({
+                            url: url.trim(),
+                            priority: servers.length + 1,
+                            enabled: true,
+                            registration_status: 'pending',
+                            last_success: null,
+                            last_error: null,
+                            total_notifications: 0,
+                            success_count: 0
+                        });
+                        
+                        saveServersList(servers);
+                    });
+            }
+        }
+        
+        function editServer(index) {
+            fetch('/api/bypass-servers')
+                .then(response => response.json())
+                .then(data => {
+                    const servers = data.servers || [];
+                    const server = servers[index];
+                    
+                    const newUrl = prompt('Edit server URL:', server.url);
+                    if (newUrl && newUrl.trim()) {
+                        servers[index].url = newUrl.trim();
+                        saveServersList(servers);
+                    }
+                });
+        }
+        
+        function toggleServer(index) {
+            fetch('/api/bypass-servers')
+                .then(response => response.json())
+                .then(data => {
+                    const servers = data.servers || [];
+                    servers[index].enabled = !servers[index].enabled;
+                    saveServersList(servers);
+                });
+        }
+        
+        function removeServer(index) {
+            if (confirm('Are you sure you want to remove this server?')) {
+                fetch('/api/bypass-servers')
+                    .then(response => response.json())
+                    .then(data => {
+                        const servers = data.servers || [];
+                        servers.splice(index, 1);
+                        // Renumber priorities
+                        servers.forEach((server, i) => {
+                            server.priority = i + 1;
+                        });
+                        saveServersList(servers);
+                    });
+            }
+        }
+        
+        async function saveServersList(servers) {
+            try {
+                const payload = {
+                    servers: servers,
+                    health_heartbeat_interval: parseInt(document.getElementById('heartbeatInterval').value),
+                    notification_timeout: parseInt(document.getElementById('notificationTimeout').value)
+                };
+                
+                const response = await fetch('/api/bypass-servers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (response.ok) {
+                    loadBypassServerData(); // Reload to show updated data
+                } else {
+                    alert('Error saving server configuration');
+                }
+                
+            } catch (error) {
+                console.error('Error saving servers:', error);
+                alert('Error saving configuration: ' + error.message);
+            }
+        }
+        
+        function saveBypassSettings() {
+            // This function is called when saving bypass settings
+            const heartbeatInterval = parseInt(document.getElementById('heartbeatInterval').value);
+            const notificationTimeout = parseInt(document.getElementById('notificationTimeout').value);
+            
+            fetch('/api/bypass-servers', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    health_heartbeat_interval: heartbeatInterval,
+                    notification_timeout: notificationTimeout
+                })
+            });
+        }
+        
+        // Send Pushbullet notification
+        async function sendPushbulletAlert(title, message) {
+            const apiKey = localStorage.getItem('pushbulletKey');
+            if (!apiKey) return;
+            
+            try {
+                await fetch('https://api.pushbullet.com/v2/pushes', {
+                    method: 'POST',
+                    headers: {
+                        'Access-Token': apiKey,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        type: 'note',
+                        title: `Power Monitor Alert: ${title}`,
+                        body: message
+                    })
+                });
+            } catch (error) {
+                console.error('Failed to send Pushbullet alert:', error);
+            }
+        }
+        
+        // Update alert ticker
+        function updateAlertTicker(alerts) {
+            const alertTicker = document.getElementById('alertTicker');
+            const alertTickerTape = document.getElementById('alertTickerTape');
+            
+            if (alerts.length > 0) {
+                // Determine severity
+                const hasCritical = alerts.some(alert => alert.includes('Critical') || alert.includes('High'));
+                
+                alertTicker.className = `alert-ticker-container active ${hasCritical ? '' : 'warning'}`;
+                
+                alertTickerTape.innerHTML = alerts.map(alert => 
+                    `<div class="alert-ticker-item">${alert}</div>`
+                ).join('');
+            } else {
+                alertTicker.classList.remove('active');
+            }
+        }
+        
+        // Update gauge values with tooltips
+        function updateGauge(gaugeName, value, maxValue, color, tooltipText, displayValue) {
+            if (gauges[gaugeName]) {
+                const percentage = Math.min(100, (value / maxValue) * 100);
+                gauges[gaugeName].data.datasets[0].data = [value, maxValue - value];
+                gauges[gaugeName].data.datasets[0].backgroundColor[0] = color;
+                gauges[gaugeName].update('none');
+                
+                // Update text value
+                const valueElement = document.getElementById(gaugeName + 'GaugeValue');
+                if (valueElement) {
+                    valueElement.textContent = displayValue || formatValue(value);
+                    valueElement.style.color = color;
+                }
+                
+                // Update tooltip
+                const tooltipElement = document.getElementById(gaugeName + 'Tooltip');
+                if (tooltipElement && tooltipText) {
+                    tooltipElement.textContent = tooltipText;
+                }
+            }
+        }
+
+        // Update per-core CPU indicators
+        function updatePerCoreIndicators(coreData) {
+            const container = document.getElementById('perCoreIndicators');
+            if (!container || !coreData || coreData.length === 0) return;
+            
+            // Initialize indicators if not already created
+            if (container.children.length !== coreData.length) {
+                container.innerHTML = '';
+                for (let i = 0; i < coreData.length; i++) {
+                    const indicator = document.createElement('div');
+                    indicator.className = 'core-indicator';
+                    indicator.setAttribute('data-core', `Core ${i}: --`);
+                    indicator.title = `Core ${i}: --`;
+                    container.appendChild(indicator);
+                }
+            }
+            
+            // Update each core indicator
+            for (let i = 0; i < coreData.length; i++) {
+                const indicator = container.children[i];
+                const usage = coreData[i];
+                
+                // Remove existing classes
+                indicator.classList.remove('core-low', 'core-medium', 'core-high');
+                
+                // Add appropriate color class
+                if (usage < 30) {
+                    indicator.classList.add('core-low');
+                } else if (usage < 70) {
+                    indicator.classList.add('core-medium');
+                } else {
+                    indicator.classList.add('core-high');
+                }
+                
+                // Update tooltip
+                const usageText = `Core ${i}: ${usage.toFixed(1)}%`;
+                indicator.setAttribute('data-core', usageText);
+                indicator.title = usageText;
+            }
+        }
+
+        // Initialize charts
+        function initCharts() {
+            // CPU & Temperature Chart
+            charts.cpu = new Chart(document.getElementById('cpuChart'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'CPU Usage (%)',
+                        data: [],
+                        borderColor: '#ff6b6b',
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Temperature (°C)',
+                        data: [],
+                        borderColor: '#ffa726',
+                        backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    ...chartOptions,
+                    scales: {
+                        ...chartOptions.scales,
+                        y: {
+                            ...chartOptions.scales.y,
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            max: 100
+                        },
+                        y1: {
+                            ...chartOptions.scales.y,
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            max: 85,
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                }
+            });
+            
+            // Memory & Load Chart
+            charts.memory = new Chart(document.getElementById('memoryChart'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Memory Usage (%)',
+                        data: [],
+                        borderColor: '#4ecdc4',
+                        backgroundColor: 'rgba(78, 205, 196, 0.1)'
+                    }, {
+                        label: 'System Load',
+                        data: [],
+                        borderColor: '#ffe66d',
+                        backgroundColor: 'rgba(255, 230, 109, 0.1)'
+                    }]
+                },
+                options: chartOptions
+            });
+            
+            // Power Trends Chart
+            charts.power = new Chart(document.getElementById('powerChart'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Estimated Power Draw',
+                        data: [],
+                        borderColor: '#a8e6cf',
+                        backgroundColor: 'rgba(168, 230, 207, 0.1)',
+                        fill: true
+                    }]
+                },
+                options: chartOptions
+            });
+            
+            // Health Score Chart
+            charts.health = new Chart(document.getElementById('healthChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Healthy', 'Warning', 'Critical'],
+                    datasets: [{
+                        data: [100, 0, 0],
+                        backgroundColor: ['#4CAF50', '#FF9800', '#F44336']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'white' }
+                        }
+                    }
+                }
+            });
+            
+            // Process Activity Chart
+            charts.process = new Chart(document.getElementById('processChart'), {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'CPU Usage (%)',
+                        data: [],
+                        backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    ...chartOptions,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            ...chartOptions.scales.x,
+                            max: 100
+                        },
+                        y: {
+                            ...chartOptions.scales.y
+                        }
+                    }
+                }
+            });
+            
+            // Error Timeline Chart
+            charts.error = new Chart(document.getElementById('errorChart'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Critical Errors',
+                        data: [],
+                        borderColor: '#ff4444',
+                        backgroundColor: 'rgba(255, 68, 68, 0.1)',
+                        stepped: true
+                    }, {
+                        label: 'Warnings',
+                        data: [],
+                        borderColor: '#ffa726',
+                        backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                        stepped: true
+                    }]
+                },
+                options: chartOptions
+            });
+        }
+        
+        // Fetch data from server
+        async function fetchData() {
+            try {
+                const [powerResponse, criticalResponse] = await Promise.all([
+                    fetch('/api/power-data'),
+                    fetch('/api/critical-indicators')
+                ]);
+                
+                if (!powerResponse.ok) throw new Error('Power data fetch failed');
+                
+                const data = await powerResponse.json();
+                updateDashboard(data);
+                
+                if (criticalResponse.ok) {
+                    criticalData = await criticalResponse.json();
+                    updateCriticalIndicators(criticalData);
+                }
+                
+                // Connection status handled in processAlertsWithTicker
+                
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                updateStatusTicker('System Disconnected', false);
+            }
+        }
+        
+        // Update critical indicators
+        function updateCriticalIndicators(data) {
+            const criticalSection = document.getElementById('criticalSection');
+            const criticalScore = document.getElementById('criticalScore');
+            const criticalWarnings = document.getElementById('criticalWarnings');
+            
+            // Show critical section if score is low or there are warnings
+            if (data.critical_score < 85 || data.warnings.length > 0) {
+                criticalSection.style.display = 'block';
+            } else {
+                criticalSection.style.display = 'none';
+                return;
+            }
+            
+            // Update critical score
+            criticalScore.textContent = data.critical_score;
+            criticalScore.style.color = data.critical_score > 70 ? '#4CAF50' : data.critical_score > 40 ? '#FF9800' : '#F44336';
+            
+            // Update warnings
+            criticalWarnings.innerHTML = data.warnings.map(w => `<div style="color: #ff6b6b;">⚠ ${w}</div>`).join('');
+            
+            // Update top CPU processes
+            const topCpuDiv = document.getElementById('topCpuProcesses');
+            if (data.top_processes && data.top_processes.cpu_intensive) {
+                topCpuDiv.innerHTML = data.top_processes.cpu_intensive.slice(0, 8).map(proc => 
+                    `<div style="margin: 5px 0; padding: 5px; background: rgba(255,255,255,0.1); border-radius: 3px;">
+                        <strong>${proc.name}</strong> (PID: ${proc.pid})<br>
+                        CPU: ${proc.cpu_percent.toFixed(1)}% | Memory: ${proc.memory_percent.toFixed(1)}%
+                    </div>`
+                ).join('');
+            }
+            
+            // Update system errors
+            const errorsDiv = document.getElementById('systemErrors');
+            if (data.recent_errors && data.recent_errors.length > 0) {
+                errorsDiv.innerHTML = data.recent_errors.map(err => {
+                    const severityColor = err.severity === 'critical' ? '#ff4444' : 
+                                        err.severity === 'error' ? '#ff8844' : '#ffaa44';
+                    return `<div style="margin: 5px 0; padding: 5px; background: rgba(255,255,255,0.1); border-left: 3px solid ${severityColor}; border-radius: 3px;">
+                        <div style="color: ${severityColor}; font-weight: bold;">${err.severity.toUpperCase()}</div>
+                        <div style="font-size: 0.7em; opacity: 0.8;">${new Date(err.timestamp).toLocaleTimeString()}</div>
+                        <div>${err.service}: ${err.message.substring(0, 100)}${err.message.length > 100 ? '...' : ''}</div>
+                    </div>`;
+                }).join('');
+            } else {
+                errorsDiv.innerHTML = '<div style="color: #4CAF50; text-align: center; padding: 20px;">✓ No recent errors</div>';
+            }
+            
+            // Update kernel messages
+            const kernelDiv = document.getElementById('kernelMessages');
+            if (data.kernel_messages && data.kernel_messages.length > 0) {
+                kernelDiv.innerHTML = data.kernel_messages.map(msg => 
+                    `<div style="margin: 5px 0; padding: 5px; background: rgba(255,255,255,0.1); border-left: 3px solid #ff4444; border-radius: 3px;">
+                        <div style="font-size: 0.7em; opacity: 0.8;">${new Date(msg.timestamp).toLocaleTimeString()}</div>
+                        <div>${msg.message.substring(0, 120)}${msg.message.length > 120 ? '...' : ''}</div>
+                    </div>`
+                ).join('');
+            } else {
+                kernelDiv.innerHTML = '<div style="color: #4CAF50; text-align: center; padding: 20px;">✓ No kernel errors</div>';
+            }
+            
+            // Update process chart
+            if (data.top_processes && data.top_processes.cpu_intensive) {
+                const top5 = data.top_processes.cpu_intensive.slice(0, 5);
+                charts.process.data.labels = top5.map(p => p.name.substring(0, 15));
+                charts.process.data.datasets[0].data = top5.map(p => p.cpu_percent);
+                charts.process.update('none');
+            }
+        }
+        
+        // Update dashboard with new data
+        function updateDashboard(data) {
+            // Update ticker first
+            updateTicker(data);
+            
+            // Update circular gauges with dynamic colors and tooltips
+            const cpuColor = data.cpu_percent > 80 ? '#ef4444' : data.cpu_percent > 60 ? '#f59e0b' : '#10b981';
+            const tempColor = data.cpu_temp > 70 ? '#ef4444' : data.cpu_temp > 60 ? '#f59e0b' : '#10b981';
+            const memoryColor = data.memory_percent > 80 ? '#ef4444' : data.memory_percent > 60 ? '#f59e0b' : '#10b981';
+            const loadColor = data.load_avg > 4 ? '#ef4444' : data.load_avg > 2 ? '#f59e0b' : '#10b981';
+            
+            updateGauge('cpu', data.cpu_percent, 100, cpuColor, 
+                `CPU Usage: ${data.cpu_percent.toFixed(1)}%`, formatValue(data.cpu_percent, 'percentage'));
+            updatePerCoreIndicators(data.cpu_percent_per_core || []);
+            updateGauge('temperature', data.cpu_temp, 85, tempColor,
+                `Temperature: ${data.cpu_temp.toFixed(1)}°C`, `${Math.round(data.cpu_temp)}°C`);
+            updateGauge('memory', data.memory_percent, 100, memoryColor,
+                `Memory: ${data.memory_percent.toFixed(1)}%`, formatValue(data.memory_percent, 'percentage'));
+            updateGauge('load', data.load_avg, 8, loadColor,
+                `Load Average: ${data.load_avg.toFixed(2)}`, formatValue(data.load_avg, 'load'));
+            
+            // Update metric cards
+            updateMetricCard('cpuValue', 'cpuTrend', data.cpu_percent, '%');
+            updateMetricCard('tempValue', 'tempTrend', data.cpu_temp, '°C');
+            updateMetricCard('memoryValue', 'memoryTrend', data.memory_percent, '%');
+            updateMetricCard('loadValue', 'loadTrend', data.load_avg, 'avg');
+            updateMetricCard('fanValue', 'fanTrend', data.fan_speed, 'RPM');
+            // Handle X1200 data display
+            const x1200Metrics = document.getElementById('x1200Metrics');
+            const x1200InfoBanner = document.getElementById('x1200InfoBanner');
+            
+            if (data.x1200_data) {
+                // Show X1200 metrics, hide info banner
+                x1200Metrics.style.display = 'grid';
+                x1200InfoBanner.style.display = 'none';
+                
+                // Update battery and power gauges
+                if (data.x1200_data.battery_percentage !== null && data.x1200_data.battery_percentage > 0) {
+                    // Use real percentage but cap gauge display at 100%
+                    const realPct = data.x1200_data.battery_percentage;
+                    const displayPct = Math.min(100, realPct);
+                    const batteryColor = displayPct > 60 ? '#10b981' : 
+                                       displayPct > 30 ? '#f59e0b' : '#ef4444';
+                    
+                    const tooltipText = realPct > 100 ? 
+                        `Battery: ${realPct.toFixed(1)}% (${data.x1200_data.battery_voltage.toFixed(2)}V) - X1200 V1.2` :
+                        `Battery: ${realPct.toFixed(1)}% (${data.x1200_data.battery_voltage.toFixed(2)}V)`;
+                    
+                    updateGauge('battery', displayPct, 100, batteryColor, tooltipText, `${Math.round(displayPct)}%`);
+                } else {
+                    updateGauge('battery', 0, 100, '#64748b', 'Battery: No data available', '--');
+                }
+                
+                const powerWatts = data.x1200_data.power / 1000; // Convert mW to W
+                const powerColor = powerWatts > 15 ? '#ef4444' : powerWatts > 10 ? '#f59e0b' : '#10b981';
+                updateGauge('power', powerWatts, 20, powerColor,
+                    `Power: ${powerWatts.toFixed(1)}W (${data.x1200_data.power.toFixed(0)}mW)`,
+                    formatValue(powerWatts, 'power'));
+                
+                // Update basic power readings
+                updateMetricCard('busVoltageValue', 'busVoltageTrend', data.x1200_data.bus_voltage, 'V');
+                updateMetricCard('currentValue', 'currentTrend', data.x1200_data.current, 'mA');
+                updateMetricCard('powerValue', 'powerTrend', data.x1200_data.power, 'mW');
+                
+                // Update X1200-specific indicators  
+                if (data.x1200_data.battery_percentage !== null) {
+                    updateMetricCard('batteryPercentValue', 'batteryPercentTrend', data.x1200_data.battery_percentage, '%');
+                } else {
+                    // Show estimated battery level when fuel gauge not available
+                    const estimatedBattery = data.x1200_data.has_external_power ? 75 : 45;
+                    updateMetricCard('batteryPercentValue', 'batteryPercentTrend', estimatedBattery, '% (est)');
+                }
+                
+                // ACTUAL battery voltage (not bus voltage)
+                if (data.x1200_data.battery_voltage !== null && data.x1200_data.battery_voltage > 0) {
+                    updateMetricCard('batteryVoltageValue', 'batteryVoltageTrend', data.x1200_data.battery_voltage, 'V');
+                } else {
+                    // Show estimated voltage when actual not available
+                    const estimatedVoltage = data.x1200_data.has_external_power ? 3.8 : 3.6;
+                    updateMetricCard('batteryVoltageValue', 'batteryVoltageTrend', estimatedVoltage, 'V (est)');
+                }
+                
+                // Input current (total system draw)
+                if (data.x1200_data.input_current !== null) {
+                    updateMetricCard('inputCurrentValue', 'inputCurrentTrend', data.x1200_data.input_current, 'mA');
+                }
+                
+                // Charging current (battery charging rate)
+                if (data.x1200_data.charging_current !== null) {
+                    updateMetricCard('chargingCurrentValue', 'chargingCurrentTrend', data.x1200_data.charging_current, 'mA');
+                }
+                
+                // Update top power indicators
+                updatePowerIndicators(data.x1200_data);
+            } else {
+                // Hide X1200 metrics, show info banner
+                x1200Metrics.style.display = 'none';
+                x1200InfoBanner.style.display = 'block';
+                
+                // Show system power estimate instead
+                const estimatedPower = estimatePowerDraw(data.cpu_percent, data.cpu_temp, data.memory_percent);
+                updateMetricCard('powerValue', 'powerTrend', estimatedPower, ' W (estimated)');
+                
+                // Update power indicators with unavailable status
+                updatePowerIndicators(null);
+            }
+            
+            // Add to history
+            dataHistory.push(data);
+            if (dataHistory.length > maxDataPoints) {
+                dataHistory.shift();
+            }
+            
+            // Update charts
+            updateCharts();
+            
+            // Process alerts with new ticker system
+            processAlertsWithTicker(data);
+        }
+        
+        // Update top power indicators
+        function updatePowerIndicators(x1200Data) {
+            const externalPowerIndicator = document.getElementById('externalPowerIndicator');
+            const externalPowerIcon = document.getElementById('externalPowerIcon');
+            const externalPowerStatus = document.getElementById('externalPowerStatus');
+            
+            const chargingIndicator = document.getElementById('chargingIndicator');
+            const chargingIcon = document.getElementById('chargingIcon');
+            const chargingStatus = document.getElementById('chargingStatus');
+            const chargingLevel = document.getElementById('chargingLevel');
+            
+            if (x1200Data && x1200Data.power_source) {
+                // External Power Status
+                const isExternalPower = !x1200Data.power_source.includes('Battery');
+                externalPowerStatus.textContent = isExternalPower ? 'Connected' : 'Disconnected';
+                externalPowerIndicator.className = `power-indicator ${isExternalPower ? 'external-power' : 'battery-power'}`;
+                
+                // Charging Status
+                if (x1200Data.is_charging !== null) {
+                    const isCharging = x1200Data.is_charging;
+                    chargingStatus.textContent = isCharging ? 'Charging' : 
+                        (x1200Data.has_battery_installed ? 'Not Charging' : 'No Battery');
+                    
+                    chargingIndicator.className = `power-indicator ${isCharging ? 'charging' : 'not-charging'}`;
+                    
+                    // Show charging level if charging
+                    if (isCharging && x1200Data.charging_current) {
+                        chargingLevel.textContent = `${x1200Data.charging_current.toFixed(0)}mA`;
+                    } else if (x1200Data.battery_percentage !== null) {
+                        chargingLevel.textContent = `${x1200Data.battery_percentage.toFixed(0)}%`;
+                    } else {
+                        chargingLevel.textContent = '--';
+                    }
+                } else {
+                    chargingStatus.textContent = '--';
+                    chargingLevel.textContent = '--';
+                    chargingIndicator.className = 'power-indicator not-charging';
+                }
+            } else {
+                // No X1200 data available
+                externalPowerStatus.textContent = 'Unknown';
+                externalPowerIndicator.className = 'power-indicator';
+                chargingStatus.textContent = 'Unknown';
+                chargingLevel.textContent = '--';
+                chargingIndicator.className = 'power-indicator';
+            }
+        }
+        
+        // Update metric cards with trend indicators
+        function updateMetricCard(valueId, trendId, value, unit) {
+            const valueElement = document.getElementById(valueId);
+            const unitElement = document.getElementById(valueId.replace('Value', 'Unit'));
+            const trendElement = document.getElementById(trendId);
+            
+            if (value !== null && value !== undefined) {
+                let displayValue = value;
+                let displayUnit = unit.trim();
+                let trendUnit = unit.trim();
+                
+                // Smart unit conversion for display
+                if (unit.includes('mA') && value >= 1000) {
+                    displayValue = value / 1000;
+                    displayUnit = 'A';
+                    // Keep original unit for trend to avoid confusion
+                } else if (unit.includes('mW') && value >= 1000) {
+                    displayValue = value / 1000;
+                    displayUnit = 'W';
+                }
+                
+                // Display value with one decimal
+                valueElement.textContent = displayValue.toFixed(1);
+                
+                // Display unit in smaller font below
+                if (unitElement) {
+                    unitElement.textContent = displayUnit;
+                }
+                
+                // Calculate trend using original units to avoid confusion 
+                const key = valueId.replace('Value', '');
+                const previousValue = previousValues[key];
+                
+                if (previousValue !== undefined) {
+                    const diff = value - previousValue;
+                    let trendClass = 'trend-stable';
+                    let trendText = '→ Stable';
+                    
+                    if (Math.abs(diff) > 0.5) {
+                        // Use appropriate trend unit based on difference size
+                        let trendDiff = diff;
+                        let trendDisplayUnit = trendUnit;
+                        
+                        if (trendUnit.includes('mA') && Math.abs(diff) >= 1000) {
+                            trendDiff = diff / 1000;
+                            trendDisplayUnit = 'A';
+                        } else if (trendUnit.includes('mW') && Math.abs(diff) >= 1000) {
+                            trendDiff = diff / 1000;
+                            trendDisplayUnit = 'W';
+                        }
+                        
+                        if (diff > 0) {
+                            trendClass = 'trend-up';
+                            trendText = `↗ +${trendDiff.toFixed(1)}${trendDisplayUnit}`;
+                        } else {
+                            trendClass = 'trend-down';
+                            trendText = `↘ ${trendDiff.toFixed(1)}${trendDisplayUnit}`;
+                        }
+                    }
+                    
+                    trendElement.className = `metric-trend ${trendClass}`;
+                    trendElement.textContent = trendText;
+                }
+                
+                previousValues[key] = value;
+            }
+        }
+        
+        // Update all charts
+        function updateCharts() {
+            if (dataHistory.length === 0) return;
+            
+            const labels = dataHistory.map(d => new Date(d.timestamp).toLocaleTimeString());
+            
+            // CPU Chart
+            charts.cpu.data.labels = labels;
+            charts.cpu.data.datasets[0].data = dataHistory.map(d => d.cpu_percent);
+            charts.cpu.data.datasets[1].data = dataHistory.map(d => d.cpu_temp);
+            charts.cpu.update('none');
+            
+            // Memory Chart
+            charts.memory.data.labels = labels;
+            charts.memory.data.datasets[0].data = dataHistory.map(d => d.memory_percent);
+            charts.memory.data.datasets[1].data = dataHistory.map(d => d.load_avg);
+            charts.memory.update('none');
+            
+            // Power Chart (estimated)
+            charts.power.data.labels = labels;
+            charts.power.data.datasets[0].data = dataHistory.map(d => 
+                estimatePowerDraw(d.cpu_percent, d.cpu_temp, d.memory_percent)
+            );
+            charts.power.update('none');
+            
+            // Health Score
+            const latest = dataHistory[dataHistory.length - 1];
+            const healthScore = calculateHealthScore(latest);
+            charts.health.data.datasets[0].data = [
+                healthScore.healthy,
+                healthScore.warning,
+                healthScore.critical
+            ];
+            charts.health.update('none');
+        }
+        
+        // Estimate power draw based on system metrics
+        function estimatePowerDraw(cpu, temp, memory) {
+            // Simple heuristic for power estimation
+            const basePower = 2.5; // Base power consumption in watts
+            const cpuPower = (cpu / 100) * 3.0; // CPU can add up to 3W
+            const tempPower = Math.max(0, (temp - 40) / 40) * 1.5; // Thermal power
+            const memoryPower = (memory / 100) * 0.5; // Memory power
+            
+            return basePower + cpuPower + tempPower + memoryPower;
+        }
+        
+        // Calculate health score
+        function calculateHealthScore(data) {
+            let score = 100;
+            
+            // Deduct points for high values
+            if (data.cpu_percent > 80) score -= (data.cpu_percent - 80) * 2;
+            if (data.cpu_temp > 70) score -= (data.cpu_temp - 70) * 3;
+            if (data.memory_percent > 85) score -= (data.memory_percent - 85) * 2;
+            if (data.load_avg > 2) score -= (data.load_avg - 2) * 10;
+            
+            score = Math.max(0, score);
+            
+            return {
+                healthy: Math.max(0, score),
+                warning: score < 70 ? Math.min(30, 100 - score) : 0,
+                critical: score < 40 ? 100 - score - 30 : 0
+            };
+        }
+        
+        // Process alerts with ticker system and Pushbullet integration
+        function processAlertsWithTicker(data) {
+            const alerts = [];
+            const criticalThreshold = parseInt(localStorage.getItem('criticalThreshold') || '85');
+            let criticalAlerts = [];
+            
+            // System alerts
+            if (data.cpu_percent > criticalThreshold) {
+                const alert = `CPU Critical: ${formatValue(data.cpu_percent, 'percentage')}%`;
+                alerts.push(alert);
+                criticalAlerts.push(alert);
+            } else if (data.cpu_percent > 60) {
+                alerts.push(`CPU High: ${formatValue(data.cpu_percent, 'percentage')}%`);
+            }
+            
+            if (data.cpu_temp > 75) {
+                const alert = `Temperature Critical: ${formatValue(data.cpu_temp, 'temperature')}°C`;
+                alerts.push(alert);
+                criticalAlerts.push(alert);
+            } else if (data.cpu_temp > 60) {
+                alerts.push(`Temperature High: ${formatValue(data.cpu_temp, 'temperature')}°C`);
+            }
+            
+            if (data.memory_percent > criticalThreshold) {
+                const alert = `Memory Critical: ${formatValue(data.memory_percent, 'percentage')}%`;
+                alerts.push(alert);
+                criticalAlerts.push(alert);
+            } else if (data.memory_percent > 70) {
+                alerts.push(`Memory High: ${formatValue(data.memory_percent, 'percentage')}%`);
+            }
+            
+            if (data.load_avg > 6) {
+                const alert = `Load Critical: ${formatValue(data.load_avg, 'load')}`;
+                alerts.push(alert);
+                criticalAlerts.push(alert);
+            } else if (data.load_avg > 3) {
+                alerts.push(`Load High: ${formatValue(data.load_avg, 'load')}`);
+            }
+            
+            // X1200 alerts and status
+            if (data.x1200_data) {
+                // Battery alerts
+                if (data.x1200_data.battery_percentage !== null && data.x1200_data.battery_percentage < 15) {
+                    const alert = `Battery Critical: ${data.x1200_data.battery_percentage}%`;
+                    alerts.push(alert);
+                    criticalAlerts.push(alert);
+                } else if (data.x1200_data.battery_percentage !== null && data.x1200_data.battery_percentage < 30) {
+                    alerts.push(`Battery Low: ${data.x1200_data.battery_percentage}%`);
+                }
+                
+                // Power source alerts (for alert ticker)
+                if (!data.x1200_data.has_external_power) {
+                    alerts.push(`Running on Battery Power`);
+                }
+                
+                // Power consumption alerts
+                const powerWatts = data.x1200_data.power / 1000;
+                if (powerWatts > 18) {
+                    const alert = `Power Critical: ${formatValue(powerWatts, 'power')}W`;
+                    alerts.push(alert);
+                    criticalAlerts.push(alert);
+                } else if (powerWatts > 15) {
+                    alerts.push(`Power High: ${formatValue(powerWatts, 'power')}W`);
+                }
+                
+                // Update status ticker with connection status (green if OK)
+                updateStatusTicker('X1200 Connected', true);
+            } else {
+                // X1200 not detected - send to alert ticker
+                alerts.push('X1200 Hardware Not Detected');
+                updateStatusTicker('X1200 Disconnected', false);
+            }
+            
+            // Update alert ticker
+            updateAlertTicker(alerts);
+            
+            // Send Pushbullet alerts for critical issues
+            if (criticalAlerts.length > 0) {
+                const message = criticalAlerts.join('\n');
+                sendPushbulletAlert('Critical System Alert', message);
+            }
+        }
+        
+        // Update status ticker for connection status
+        function updateStatusTicker(message, isGood) {
+            const statusTickerItem = document.querySelector('#tickerStatus');
+            if (statusTickerItem) {
+                statusTickerItem.textContent = message;
+                statusTickerItem.style.color = isGood ? '#10b981' : '#ef4444';
+            }
+        }
+        
+        // Run diagnostics function
+        function runDiagnostics() {
+            // Show a simple diagnostic info popup
+            const diagnosticInfo = `
+⚙ X1200 UPS HAT Diagnostics
+
+To diagnose X1200 hardware connection:
+
+1. Check Physical Connection:
+   • Ensure X1200 is properly seated on GPIO pins
+   • Verify power connections to X1200
+
+2. Enable I2C:
+   • Run: sudo raspi-config
+   • Navigate to: Interface Options → I2C → Enable
+
+3. Scan I2C Buses:
+   • Run: sudo i2cdetect -y 1
+   • Run: sudo i2cdetect -y 11
+   • Look for devices at addresses 0x36, 0x40, 0x45
+
+4. Check Logs:
+   • Run: sudo journalctl -u power-dashboard.service -f
+   • Look for X1200 connection messages
+
+5. Manual Test:
+   • Run: python3 x1200_diagnostics.py
+   • Or: python3 x1200_enhanced_monitor.py
+
+Expected I2C Address: 0x36 (MAX17040G+ fuel gauge)
+            `;
+            
+            alert(diagnosticInfo);
+        }
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTheme(); // Load saved theme first
+            initGauges(); // Initialize circular gauges
+            initCharts(); // Initialize line charts
+            fetchData(); // Initial fetch
+            setInterval(fetchData, 5000); // Update every 5 seconds
+        });
+    </script>
+</body>
+</html>
