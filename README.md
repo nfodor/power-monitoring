@@ -8,13 +8,14 @@
   </a>
 </p>
 
-# X1200 Power Monitor Dashboard
+# Raspberry Pi Power Monitor Dashboard
 
-Your lightweight control center for Geekworm X1200/X1206 UPS builds. It surfaces live power metrics, network health, and bypass server telemetry for remote edge boxes.
+Your lightweight control center for Raspberry Pi rigs backed by the Geekworm X1200/X1206 UPS. It surfaces live power metrics, network health, bypass server telemetry, and layers on notification delivery, USB power control, and CPU power-throttling toggles.
 
 ## Highlights
 - Real-time gauges for battery, CPU, thermal and power draw.
-- Built-in bypass notifier with Pushover hooks and health heartbeats.
+- Built-in bypass notifier with Pushover hooks, alert history, and health heartbeats.
+- One-click USB high-current toggle plus CPU power-level throttling controls.
 - Smart voltage fallback scripts to protect Pi sensors (see `setup-voltage-monitoring.sh`).
 - Mobile-friendly UI that runs happily on headless Chromium or kiosk screens.
 
