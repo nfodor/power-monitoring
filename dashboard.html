@@ -30,6 +30,15 @@
             --purple-color: #8b5cf6;
             --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
             --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --gauge-column-min: 200px;
+            --gauge-gap: 16px;
+            --gauge-card-padding: 16px;
+            --gauge-card-radius: 14px;
+            --gauge-title-size: 0.85rem;
+            --gauge-value-size: 2.1rem;
+            --gauge-unit-size: 0.75rem;
+            --gauge-canvas-size: 130px;
+            --network-column-min: 140px;
         }
         
         [data-theme="dark"] {
@@ -101,6 +110,33 @@
             gap: 8px;
             flex: 1;
             justify-content: flex-end;
+        }
+
+        .github-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            text-decoration: none;
+        }
+
+        .github-link:hover,
+        .github-link:focus-visible {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent-color);
+        }
+
+        .github-link svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
         }
         
         .header-logo {
@@ -915,55 +951,51 @@
         }
 
         /* Force Layout Classes */
-        .force-single {
+        .gauges-container.force-single,
+        .network-gauges-container.force-single {
             grid-template-columns: 1fr !important;
         }
-        
-        .force-grid {
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+
+        .gauges-container.force-grid,
+        .network-gauges-container.force-grid {
+            grid-template-columns: repeat(auto-fit, minmax(var(--gauge-column-min, 200px), 1fr)) !important;
         }
-        
+
         /* Gauge Size Variations */
-        .gauge-small .gauge-card {
-            min-width: 100px !important;
-            height: 80px !important;
-            padding: 10px !important;
+        body.gauge-small {
+            --gauge-column-min: 160px;
+            --gauge-card-padding: 12px;
+            --gauge-card-radius: 12px;
+            --gauge-title-size: 0.75rem;
+            --gauge-value-size: 1.8rem;
+            --gauge-unit-size: 0.7rem;
+            --gauge-canvas-size: 110px;
+            --gauge-gap: 12px;
+            --network-column-min: 120px;
         }
-        
-        .gauge-small .gauge-canvas,
-        .gauge-small .chart-fallback {
-            width: 50px !important;
-            height: 50px !important;
+
+        body.gauge-medium {
+            --gauge-column-min: 200px;
+            --gauge-card-padding: 16px;
+            --gauge-card-radius: 14px;
+            --gauge-title-size: 0.85rem;
+            --gauge-value-size: 2.1rem;
+            --gauge-unit-size: 0.75rem;
+            --gauge-canvas-size: 130px;
+            --gauge-gap: 16px;
+            --network-column-min: 140px;
         }
-        
-        .gauge-small .gauge-label,
-        .gauge-small .gauge-title {
-            font-size: 11px !important;
-        }
-        
-        .gauge-small .gauge-value {
-            font-size: 16px !important;
-        }
-        
-        .gauge-large .gauge-card {
-            min-width: 180px !important;
-            height: 140px !important;
-            padding: 25px !important;
-        }
-        
-        .gauge-large .gauge-canvas,
-        .gauge-large .chart-fallback {
-            width: 100px !important;
-            height: 100px !important;
-        }
-        
-        .gauge-large .gauge-label,
-        .gauge-large .gauge-title {
-            font-size: 16px !important;
-        }
-        
-        .gauge-large .gauge-value {
-            font-size: 28px !important;
+
+        body.gauge-large {
+            --gauge-column-min: 240px;
+            --gauge-card-padding: 20px;
+            --gauge-card-radius: 16px;
+            --gauge-title-size: 1rem;
+            --gauge-value-size: 2.4rem;
+            --gauge-unit-size: 0.85rem;
+            --gauge-canvas-size: 160px;
+            --gauge-gap: 20px;
+            --network-column-min: 160px;
         }
         
         .bypass-info-panel {
@@ -1222,348 +1254,76 @@
         @media (max-width: 768px) {
             .charts-container {
                 grid-template-columns: 1fr;
-                padding: 10px;
-                gap: 15px;
+                padding: 12px;
+                gap: 12px;
             }
 
-            /* Mobile responsiveness for gauges - Horizontal scrolling carousel */
             .gauges-container {
-                display: flex !important;
-                overflow-x: auto !important;
-                overflow-y: hidden !important;
-                scroll-snap-type: x mandatory !important;
-                -webkit-overflow-scrolling: touch !important;
-                scrollbar-width: none !important;
-                -ms-overflow-style: none !important;
-                gap: 0 !important;
-                padding: 10px !important;
-                margin-bottom: 12px !important;
-                position: relative !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                padding: 12px;
+                gap: 12px;
             }
 
-            .gauges-container::-webkit-scrollbar {
-                display: none !important;
-            }
-
-            /* Add scroll indicator dots */
-            .gauges-container::after {
-                content: '● ● ● ● ● ●' !important;
-                position: absolute !important;
-                bottom: -8px !important;
-                left: 50% !important;
-                transform: translateX(-50%) !important;
-                font-size: 8px !important;
-                color: var(--text-muted) !important;
-                letter-spacing: 4px !important;
-                opacity: 0.5 !important;
-                pointer-events: none !important;
-            }
-
-            .gauge-card {
-                flex: 0 0 calc(100vw - 40px) !important;
-                scroll-snap-align: center !important;
-                margin: 0 5px !important;
-                min-width: unset !important;
-                max-width: calc(100vw - 40px) !important;
-                padding: 16px !important;
-                font-size: 16px !important;
-                border-radius: 12px !important;
-                box-sizing: border-box !important;
-                text-align: center !important;
-            }
-
-            .gauge-title {
-                font-size: 12px !important;
-                margin-bottom: 8px !important;
-            }
-
-            .gauge-value {
-                font-size: 24px !important;
-                margin-top: 8px !important;
-            }
-
-            .gauge-unit {
-                font-size: 12px !important;
-                margin-top: 4px !important;
-            }
-            
             .network-gauges-container {
-                grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-                gap: 4px;
-                padding: 6px 10px;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+                padding: 12px;
             }
-            
-            .gauge-card {
-                min-width: unset;
-                padding: 3px 1px;
-                font-size: 9px;
-            }
-            
-            .gauge-title {
-                font-size: 7px !important;
-                margin-bottom: 1px;
-            }
-            
-            .gauge-value {
-                font-size: 10px !important;
-                margin-top: 1px;
-            }
-            
-            .gauge-unit {
-                font-size: 7px !important;
-                margin-top: 1px;
-            }
-            
-            /* Header adjustments for mobile */
+
             .header {
                 flex-direction: column;
-                gap: 8px;
-                padding: 10px;
+                gap: 12px;
+                padding: 12px;
             }
-            
-            .header-left {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .logo-container {
-                padding: 8px 15px;
-                gap: 10px;
-            }
-            
-            .header-logo {
-                width: 60px;
-            }
-            
-            .logo-text h1 {
-                font-size: 14px;
-            }
-            
-            .logo-text p {
-                font-size: 10px;
-            }
-            
+
+            .header-left,
             .header-right {
                 width: 100%;
                 justify-content: center;
             }
-        }
-        
-        /* iPhone specific optimizations - Horizontal scrolling carousel */
-        @media only screen and (max-width: 414px) and (min-width: 321px) {
-            /* iPhone 13/14/15 and similar */
-            .gauges-container,
-            .gauges-container.small {
-                display: flex !important;
-                overflow-x: auto !important;
-                overflow-y: hidden !important;
-                scroll-snap-type: x mandatory !important;
-                -webkit-overflow-scrolling: touch !important;
-                scrollbar-width: none !important;
-                -ms-overflow-style: none !important;
-                gap: 0 !important;
-                padding: 8px !important;
-                margin-bottom: 12px !important;
-            }
 
-            .gauges-container::-webkit-scrollbar,
-            .gauges-container.small::-webkit-scrollbar {
-                display: none !important;
-            }
-
-            .gauge-card {
-                flex: 0 0 calc(100vw - 32px) !important;
-                scroll-snap-align: center !important;
-                margin: 0 4px !important;
-                min-width: unset !important;
-                max-width: calc(100vw - 32px) !important;
-                padding: 12px !important;
-                font-size: 14px !important;
-                border-radius: 12px !important;
-                box-sizing: border-box !important;
-                text-align: center !important;
-            }
-
-            .gauge-title {
-                font-size: 11px !important;
-                margin-bottom: 6px !important;
-            }
-
-            .gauge-value {
-                font-size: 20px !important;
-                margin-top: 6px !important;
-            }
-
-            .gauge-unit {
-                font-size: 10px !important;
-                margin-top: 3px !important;
-            }
-            
-            .network-gauges-container {
-                grid-template-columns: repeat(auto-fit, minmax(45px, 1fr)) !important;
-                gap: 3px !important;
-                padding: 4px 8px !important;
-            }
-            
-            .gauge-card {
-                min-width: unset !important;
-                padding: 4px 2px !important;
-                font-size: 11px !important;
-            }
-            
-            /* Ensure logo loads properly on iOS */
-            .header-logo {
-                width: 50px;
-                -webkit-transform: translateZ(0);
-                transform: translateZ(0);
-                backface-visibility: hidden;
-            }
-            
             .logo-container {
-                -webkit-backface-visibility: hidden;
-                backface-visibility: hidden;
-                -webkit-transform: translate3d(0,0,0);
-                transform: translate3d(0,0,0);
+                padding: 8px 12px;
+                gap: 10px;
+            }
+
+            .header-logo {
+                width: 56px;
+            }
+
+            .logo-text h1 {
+                font-size: 15px;
+            }
+
+            .logo-text p {
+                font-size: 11px;
             }
         }
-        
-        /* Very small screens - iPhone SE, older Android - Horizontal scrolling carousel */
-        @media only screen and (max-width: 320px) {
-            .gauges-container,
-            .gauges-container.small {
-                display: flex !important;
-                overflow-x: auto !important;
-                overflow-y: hidden !important;
-                scroll-snap-type: x mandatory !important;
-                -webkit-overflow-scrolling: touch !important;
-                scrollbar-width: none !important;
-                -ms-overflow-style: none !important;
-                gap: 0 !important;
-                padding: 6px !important;
-                margin-bottom: 12px !important;
+
+        @media (max-width: 540px) {
+            .gauges-container {
+                grid-template-columns: 1fr;
             }
 
-            .gauges-container::-webkit-scrollbar,
-            .gauges-container.small::-webkit-scrollbar {
-                display: none !important;
-            }
-
-            .gauge-card {
-                flex: 0 0 calc(100vw - 24px) !important;
-                scroll-snap-align: center !important;
-                margin: 0 3px !important;
-                min-width: unset !important;
-                max-width: calc(100vw - 24px) !important;
-                padding: 10px !important;
-                font-size: 12px !important;
-                border-radius: 10px !important;
-                box-sizing: border-box !important;
-                text-align: center !important;
-            }
-
-            .gauge-title {
-                font-size: 9px !important;
-                margin-bottom: 4px !important;
-            }
-
-            .gauge-value {
-                font-size: 18px !important;
-                margin-top: 4px !important;
-            }
-
-            .gauge-unit {
-                font-size: 8px !important;
-                margin-top: 2px !important;
-            }
-            
             .network-gauges-container {
-                grid-template-columns: repeat(auto-fit, minmax(35px, 1fr)) !important;
-                gap: 2px !important;
-                padding: 3px 6px !important;
+                grid-template-columns: 1fr;
             }
-            
-            .gauge-card {
-                padding: 3px 1px !important;
-                font-size: 9px !important;
-                min-width: unset !important;
+
+            .header-logo {
+                width: 48px;
             }
-            
-            .gauge-title {
-                font-size: 7px !important;
+
+            .logo-text h1 {
+                font-size: 14px;
             }
-            
-            .gauge-value {
-                font-size: 9px !important;
-            }
-            
-            .gauge-unit {
-                font-size: 6px !important;
+
+            .logo-text p {
+                font-size: 10px;
             }
         }
         
-        /* SINGLE COLUMN MOBILE LAYOUT */
-        @media screen and (max-width: 400px) {
-            .gauges-container, 
-            .gauges-container.small,
-            .network-gauges-container { 
-                display: grid !important; 
-                grid-template-columns: 1fr !important; 
-                gap: 12px !important; 
-                padding: 15px !important; 
-                width: 100% !important;
-                box-sizing: border-box !important;
-            }
-            .gauge-card { 
-                min-width: unset !important; 
-                width: 100% !important; 
-                height: 120px !important;
-                padding: 20px !important; 
-                font-size: 14px !important;
-                box-sizing: border-box !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: space-between !important;
-                margin: 0 !important;
-                border-radius: 12px !important;
-                background: var(--bg-card) !important;
-                box-shadow: var(--shadow) !important;
-            }
-            
-            .gauge-canvas, .chart-fallback {
-                width: 80px !important;
-                height: 80px !important;
-                margin: 0 !important;
-                flex-shrink: 0 !important;
-            }
-            
-            .gauge-info {
-                flex-grow: 1 !important;
-                margin-left: 20px !important;
-                text-align: left !important;
-            }
-            
-            .gauge-title, .gauge-label { 
-                font-size: 18px !important; 
-                font-weight: 600 !important;
-                margin-bottom: 8px !important;
-                display: block !important;
-                color: var(--text-primary) !important;
-            }
-            .gauge-value { 
-                font-size: 32px !important; 
-                font-weight: 700 !important; 
-                display: block !important;
-                margin: 0 !important;
-                color: var(--accent-color) !important;
-                line-height: 1 !important;
-            }
-            .gauge-unit { 
-                font-size: 16px !important; 
-                display: inline !important;
-                margin-left: 4px !important;
-                color: var(--text-secondary) !important;
-            }
-        }
+        
+        
         
         .chart-card {
             background: var(--bg-card);
@@ -1582,19 +1342,24 @@
         
         .gauges-container {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(2, 1fr);
-            grid-auto-flow: column;
-            gap: 8px;
-            padding: 12px;
-            margin-bottom: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(var(--gauge-column-min), 1fr));
+            gap: var(--gauge-gap);
+            padding: 16px;
+            margin-bottom: 16px;
             align-items: stretch;
         }
-        
+
+        .network-gauges-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(var(--network-column-min, 140px), 1fr));
+            gap: 12px;
+            padding: 12px 16px;
+        }
+
         .gauge-card {
             background: var(--bg-card);
-            border-radius: 6px;
-            padding: 8px;
+            border-radius: var(--gauge-card-radius);
+            padding: var(--gauge-card-padding);
             text-align: center;
             box-shadow: var(--shadow);
             border: 1px solid var(--border-color);
@@ -1602,32 +1367,41 @@
             position: relative;
             cursor: pointer;
         }
-        
+
         .gauge-card:hover {
             box-shadow: var(--shadow-lg);
             transform: translateY(-1px);
         }
-        
+
+        .gauge-card canvas,
+        .gauge-card .chart-fallback {
+            width: var(--gauge-canvas-size);
+            height: var(--gauge-canvas-size);
+            margin: 0 auto;
+            max-width: 100%;
+            display: block;
+        }
+
         .gauge-title {
-            font-size: 9px;
-            font-weight: 500;
-            margin-bottom: 4px;
+            font-size: var(--gauge-title-size);
+            font-weight: 600;
+            margin-top: 8px;
             color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 0.3px;
         }
-        
+
         .gauge-value {
-            font-size: 14px;
+            font-size: var(--gauge-value-size);
             font-weight: 700;
-            margin-top: 4px;
+            margin-top: 8px;
             color: var(--text-primary);
         }
-        
+
         .gauge-unit {
-            font-size: 8px;
+            font-size: var(--gauge-unit-size);
             color: var(--text-muted);
-            margin-top: 1px;
+            margin-top: 2px;
             font-weight: 500;
         }
         
@@ -1895,9 +1669,9 @@
             }
             
             .gauges-container {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: 1fr;
                 padding: 10px;
-                gap: 8px;
+                gap: 10px;
             }
         }
         
@@ -2002,7 +1776,7 @@
         }
     </style>
 </head>
-<body>
+<body class="gauge-medium">
     <div class="header">
         <div class="header-left">
             <img class="header-logo" src="setip-logo.png" alt="Setip.io Logo" onerror="this.style.display='none'; console.log('Logo failed to load')">
@@ -2012,6 +1786,11 @@
             <p class="header-subtitle">Real-time system monitoring</p>
         </div>
         <div class="header-right">
+            <a class="github-link" href="https://github.com/nfodor/power-monitoring" target="_blank" rel="noopener noreferrer" title="View source on GitHub" aria-label="View source on GitHub">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.302 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.726-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.757-1.333-1.757-1.089-.745.084-.73.084-.73 1.205.084 1.84 1.237 1.84 1.237 1.07 1.834 2.809 1.304 3.495.997.108-.776.418-1.305.762-1.605-2.665-.304-5.467-1.334-5.467-5.93 0-1.31.469-2.381 1.235-3.221-.123-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.3 1.23a11.5 11.5 0 0 1 3.003-.403c1.02.005 2.046.138 3.003.403 2.29-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.119 3.176.77.84 1.233 1.911 1.233 3.221 0 4.61-2.807 5.624-5.479 5.921.43.371.823 1.102.823 2.222 0 1.606-.015 2.898-.015 3.293 0 .321.216.694.825.576C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+                </svg>
+            </a>
             <button class="settings-toggle" onclick="toggleSettings()">Settings</button>
             <button class="theme-toggle" onclick="toggleTheme()">Dark Mode</button>
             <button class="logout-btn" onclick="logout()">Logout</button>
@@ -2260,7 +2039,7 @@
                     <label class="settings-label">Gauge Size</label>
                     <select class="settings-input" id="gaugeSize">
                         <option value="small">Small (Compact)</option>
-                        <option value="medium">Medium (Default)</option>
+                        <option value="medium" selected>Medium (Default)</option>
                         <option value="large">Large (Easy to read)</option>
                     </select>
                 </div>
@@ -2270,7 +2049,7 @@
                     <label class="settings-label">Internet Check Interval</label>
                     <select class="settings-input" id="connectivityInterval">
                         <option value="10">Every 10 seconds</option>
-                        <option value="30">Every 30 seconds (Default)</option>
+                        <option value="30" selected>Every 30 seconds (Default)</option>
                         <option value="60">Every minute</option>
                         <option value="300">Every 5 minutes</option>
                     </select>
@@ -2281,7 +2060,7 @@
                     <label class="settings-label">Data Refresh Rate</label>
                     <select class="settings-input" id="refreshRate">
                         <option value="1">Every 1 second</option>
-                        <option value="5">Every 5 seconds (Default)</option>
+                        <option value="5" selected>Every 5 seconds (Default)</option>
                         <option value="10">Every 10 seconds</option>
                         <option value="30">Every 30 seconds</option>
                     </select>
@@ -5267,6 +5046,16 @@ Expected I2C Address: 0x36 (MAX17040G+ fuel gauge)
         document.addEventListener('DOMContentLoaded', function() {
             loadTheme(); // Load saved theme first
             loadDisplaySettings(); // Load display preferences
+
+            const displayControls = ['mobileLayout', 'gaugeSize', 'connectivityInterval', 'refreshRate'];
+            displayControls.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('change', applyDisplaySettings);
+                }
+            });
+
+            applyDisplaySettings();
             initGauges(); // Initialize circular gauges
             initCharts(); // Initialize line charts
             startConnectivityMonitoring(); // Start internet connectivity monitoring
