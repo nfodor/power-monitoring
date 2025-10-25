@@ -29,4 +29,16 @@ Your lightweight control center for Raspberry Pi rigs backed by the Geekworm X12
 - `x1200_common.py` – shared MAX17040/X1200 hardware helpers.
 - `setup-voltage-monitoring.sh` – smart voltage source selector service.
 
+## Hardware Ecosystem
+The dashboard is designed around the Geekworm X1200 series UPS ecosystem:
+
+- **Geekworm X1200 UPS HAT** – Hot-swap 21700 Li-ion support, dual power inputs, and full MAX17040 telemetry.<br>
+  <https://geekworm.com/products/x1200-ups-hat>
+- **Geekworm X1206 UPS HAT** – Slimmer follow-up with integrated battery bay and USB-C power path.<br>
+  <https://geekworm.com/products/x1206-ups-hat>
+- **Armor & Portable Cases** – Aluminum enclosures and travel shells that pair with the X1200/X1206 stack for edge deployments.<br>
+  <https://geekworm.com/collections/raspberry-pi-case>
+
+Together they turn a Raspberry Pi into a self-powered edge node that can ride out brownouts, run on battery in the field, or tuck into a backpack. Hook it to a monitor/keyboard for on-site work, or leave it headless and reach it over VNC from an iPad for portable development, field data capture, or PoE-less sensor hubs.
+
 For deeper troubleshooting or feature history, skim `VOLTAGE_MONITORING_UPDATE.md`, `COMPLETE_FEATURE_ANALYSIS.md`, and the scripts in this repo.
