@@ -1096,12 +1096,14 @@ class AlertManager:
         try:
             if os.path.exists(self.config_file):
                 with open(self.config_file, 'r') as f:
-                    return json.load(f)
+                    config = json.load(f)
+            else:
+                config = None
         except Exception as e:
             print(f"Error loading alert config: {e}")
 
-        # Return default config
-        return {
+        # Default configuration
+        default_config = {
             "pushover": {
                 "api_token": "",
                 "user_key": "",
@@ -1116,8 +1118,21 @@ class AlertManager:
                 "power_loss": {"enabled": True, "value": 1, "unit": "boolean"}
             },
             "alert_history": [],
-            "last_alert_times": {}
+            "last_alert_times": {},
+            "active_alerts": {}
         }
+
+        if not config:
+            return default_config
+
+        # Ensure required keys exist for older configs
+        config.setdefault("pushover", default_config["pushover"])
+        config.setdefault("thresholds", default_config["thresholds"])
+        config.setdefault("alert_history", [])
+        config.setdefault("last_alert_times", {})
+        config.setdefault("active_alerts", {})
+
+        return config
 
     def save_config(self):
         """Save configuration to file"""
@@ -1196,79 +1211,197 @@ class AlertManager:
         current_time = datetime.now()
         cooldown_minutes = 5  # Minimum time between same alert types
 
-        # Check battery thresholds
-        battery_percent = power_data.get('battery_percentage', 100)
+        thresholds = self.config.get("thresholds", {})
 
-        # Battery low
-        if (self.config["thresholds"]["battery_low"]["enabled"] and
-            battery_percent <= self.config["thresholds"]["battery_low"]["value"]):
-            self._send_throttled_alert(
-                "battery_low",
-                "Battery Low Warning",
-                f"Battery at {battery_percent:.1f}% - consider charging soon",
-                current_time,
-                cooldown_minutes
-            )
+        # Extract key metrics with safe defaults
+        battery_percent = power_data.get('battery_percentage')
+        if battery_percent is None:
+            battery_percent = power_data.get('battery_percent')
+        try:
+            battery_percent = float(battery_percent)
+        except (TypeError, ValueError):
+            battery_percent = 100.0
 
-        # Battery critical
-        if (self.config["thresholds"]["battery_critical"]["enabled"] and
-            battery_percent <= self.config["thresholds"]["battery_critical"]["value"]):
-            self._send_throttled_alert(
-                "battery_critical",
-                "CRITICAL: Battery Very Low",
-                f"Battery at {battery_percent:.1f}% - charge immediately!",
-                current_time,
-                cooldown_minutes,
-                priority=1
-            )
+        cpu_temp = system_data.get('cpu_temp')
+        if cpu_temp is None:
+            cpu_temp = system_data.get('temperature')
+        try:
+            cpu_temp = float(cpu_temp)
+        except (TypeError, ValueError):
+            cpu_temp = 0.0
 
-        # CPU temperature
-        cpu_temp = system_data.get('cpu_temp', 0)
-        if (self.config["thresholds"]["cpu_temp_high"]["enabled"] and
-            cpu_temp >= self.config["thresholds"]["cpu_temp_high"]["value"]):
-            self._send_throttled_alert(
-                "cpu_temp_high",
-                "High CPU Temperature",
-                f"CPU temperature at {cpu_temp:.1f}°C - check cooling",
-                current_time,
-                cooldown_minutes
-            )
+        cpu_usage = system_data.get('cpu_percent')
+        if cpu_usage is None:
+            cpu_usage = system_data.get('cpu_usage')
+        try:
+            cpu_usage = float(cpu_usage)
+        except (TypeError, ValueError):
+            cpu_usage = 0.0
 
-        # CPU usage
-        cpu_usage = system_data.get('cpu_percent', 0)
-        if (self.config["thresholds"]["cpu_usage_high"]["enabled"] and
-            cpu_usage >= self.config["thresholds"]["cpu_usage_high"]["value"]):
-            self._send_throttled_alert(
-                "cpu_usage_high",
-                "High CPU Usage",
-                f"CPU usage at {cpu_usage:.1f}% - system under heavy load",
-                current_time,
-                cooldown_minutes
-            )
+        memory_usage = system_data.get('memory_percent')
+        if memory_usage is None:
+            memory_usage = system_data.get('memory_usage')
+        try:
+            memory_usage = float(memory_usage)
+        except (TypeError, ValueError):
+            memory_usage = 0.0
 
-        # Memory usage
-        memory_usage = system_data.get('memory_percent', 0)
-        if (self.config["thresholds"]["memory_high"]["enabled"] and
-            memory_usage >= self.config["thresholds"]["memory_high"]["value"]):
-            self._send_throttled_alert(
-                "memory_high",
-                "High Memory Usage",
-                f"Memory usage at {memory_usage:.1f}% - system may slow down",
-                current_time,
-                cooldown_minutes
-            )
+        external_power = power_data.get('external_power')
+        if external_power is None:
+            external_power = power_data.get('has_external_power', True)
+        external_power = bool(external_power if external_power is not None else True)
 
-        # Power loss
-        external_power = power_data.get('external_power', True)
-        if (self.config["thresholds"]["power_loss"]["enabled"] and not external_power):
-            self._send_throttled_alert(
-                "power_loss",
-                "ALERT: External Power Lost",
-                f"System running on battery power ({battery_percent:.1f}% remaining)",
-                current_time,
-                cooldown_minutes,
-                priority=1
-            )
+        margin_defaults = {
+            "battery_low": 3,
+            "battery_critical": 3,
+            "cpu_temp_high": 3,
+            "cpu_usage_high": 5,
+            "memory_high": 5,
+            "power_loss": 0,
+        }
+
+        # Battery low threshold
+        battery_low_cfg = thresholds.get("battery_low", {})
+        battery_low_enabled = battery_low_cfg.get("enabled", False)
+        battery_low_threshold = float(battery_low_cfg.get("value", 20))
+        battery_low_margin = float(battery_low_cfg.get("recovery_margin", margin_defaults["battery_low"]))
+        battery_low_margin = max(battery_low_margin, 0)
+        battery_low_triggered = battery_low_enabled and battery_percent <= battery_low_threshold
+        battery_low_recovery_ready = battery_low_enabled and battery_percent >= (battery_low_threshold + battery_low_margin)
+
+        self._process_threshold(
+            "battery_low",
+            battery_low_enabled,
+            battery_low_triggered,
+            battery_low_recovery_ready,
+            "Battery Low Warning",
+            f"Battery at {battery_percent:.1f}% - consider charging soon",
+            "Battery Level Restored",
+            f"Battery back to {battery_percent:.1f}% - above {battery_low_threshold:.0f}%",
+            current_time,
+            cooldown_minutes
+        )
+
+        # Battery critical threshold
+        battery_critical_cfg = thresholds.get("battery_critical", {})
+        battery_critical_enabled = battery_critical_cfg.get("enabled", False)
+        battery_critical_threshold = float(battery_critical_cfg.get("value", 10))
+        battery_critical_margin = float(battery_critical_cfg.get("recovery_margin", margin_defaults["battery_critical"]))
+        battery_critical_margin = max(battery_critical_margin, 0)
+        battery_critical_triggered = battery_critical_enabled and battery_percent <= battery_critical_threshold
+        battery_critical_recovery_ready = battery_critical_enabled and battery_percent >= (battery_critical_threshold + battery_critical_margin)
+
+        self._process_threshold(
+            "battery_critical",
+            battery_critical_enabled,
+            battery_critical_triggered,
+            battery_critical_recovery_ready,
+            "CRITICAL: Battery Very Low",
+            f"Battery at {battery_percent:.1f}% - charge immediately!",
+            "Battery Level Recovering",
+            f"Battery back to {battery_percent:.1f}% - above critical threshold",
+            current_time,
+            cooldown_minutes,
+            priority=1
+        )
+
+        # CPU temperature threshold
+        cpu_temp_cfg = thresholds.get("cpu_temp_high", {})
+        cpu_temp_enabled = cpu_temp_cfg.get("enabled", False)
+        cpu_temp_threshold = float(cpu_temp_cfg.get("value", 70))
+        cpu_temp_margin = float(cpu_temp_cfg.get("recovery_margin", margin_defaults["cpu_temp_high"]))
+        cpu_temp_margin = max(cpu_temp_margin, 0)
+        cpu_temp_triggered = cpu_temp_enabled and cpu_temp >= cpu_temp_threshold
+        cpu_temp_recovery_cutoff = cpu_temp_threshold - cpu_temp_margin
+        if cpu_temp_recovery_cutoff >= cpu_temp_threshold:
+            cpu_temp_recovery_cutoff = cpu_temp_threshold - 1
+        cpu_temp_recovery_cutoff = max(cpu_temp_recovery_cutoff, 0)
+        cpu_temp_recovery_ready = cpu_temp_enabled and cpu_temp <= cpu_temp_recovery_cutoff
+
+        self._process_threshold(
+            "cpu_temp_high",
+            cpu_temp_enabled,
+            cpu_temp_triggered,
+            cpu_temp_recovery_ready,
+            "High CPU Temperature",
+            f"CPU temperature at {cpu_temp:.1f}°C - check cooling",
+            "CPU Temperature Normalized",
+            f"CPU temperature back to {cpu_temp:.1f}°C - below {cpu_temp_threshold:.0f}°C threshold",
+            current_time,
+            cooldown_minutes
+        )
+
+        # CPU usage threshold
+        cpu_usage_cfg = thresholds.get("cpu_usage_high", {})
+        cpu_usage_enabled = cpu_usage_cfg.get("enabled", False)
+        cpu_usage_threshold = float(cpu_usage_cfg.get("value", 80))
+        cpu_usage_margin = float(cpu_usage_cfg.get("recovery_margin", margin_defaults["cpu_usage_high"]))
+        cpu_usage_margin = max(cpu_usage_margin, 0)
+        cpu_usage_triggered = cpu_usage_enabled and cpu_usage >= cpu_usage_threshold
+        cpu_usage_recovery_cutoff = cpu_usage_threshold - cpu_usage_margin
+        if cpu_usage_recovery_cutoff >= cpu_usage_threshold:
+            cpu_usage_recovery_cutoff = cpu_usage_threshold - 1
+        cpu_usage_recovery_cutoff = max(cpu_usage_recovery_cutoff, 0)
+        cpu_usage_recovery_ready = cpu_usage_enabled and cpu_usage <= cpu_usage_recovery_cutoff
+
+        self._process_threshold(
+            "cpu_usage_high",
+            cpu_usage_enabled,
+            cpu_usage_triggered,
+            cpu_usage_recovery_ready,
+            "High CPU Usage",
+            f"CPU usage at {cpu_usage:.1f}% - system under heavy load",
+            "CPU Usage Normal",
+            f"CPU usage back to {cpu_usage:.1f}% - within safe range",
+            current_time,
+            cooldown_minutes
+        )
+
+        # Memory usage threshold
+        memory_cfg = thresholds.get("memory_high", {})
+        memory_enabled = memory_cfg.get("enabled", False)
+        memory_threshold = float(memory_cfg.get("value", 90))
+        memory_margin = float(memory_cfg.get("recovery_margin", margin_defaults["memory_high"]))
+        memory_margin = max(memory_margin, 0)
+        memory_triggered = memory_enabled and memory_usage >= memory_threshold
+        memory_recovery_cutoff = memory_threshold - memory_margin
+        if memory_recovery_cutoff >= memory_threshold:
+            memory_recovery_cutoff = memory_threshold - 1
+        memory_recovery_cutoff = max(memory_recovery_cutoff, 0)
+        memory_recovery_ready = memory_enabled and memory_usage <= memory_recovery_cutoff
+
+        self._process_threshold(
+            "memory_high",
+            memory_enabled,
+            memory_triggered,
+            memory_recovery_ready,
+            "High Memory Usage",
+            f"Memory usage at {memory_usage:.1f}% - system may slow down",
+            "Memory Usage Normal",
+            f"Memory usage back to {memory_usage:.1f}% - within safe range",
+            current_time,
+            cooldown_minutes
+        )
+
+        # Power loss threshold
+        power_loss_cfg = thresholds.get("power_loss", {})
+        power_loss_enabled = power_loss_cfg.get("enabled", False)
+        power_loss_triggered = power_loss_enabled and not external_power
+        power_loss_recovery_ready = power_loss_enabled and external_power
+
+        self._process_threshold(
+            "power_loss",
+            power_loss_enabled,
+            power_loss_triggered,
+            power_loss_recovery_ready,
+            "ALERT: External Power Lost",
+            f"System running on battery power ({battery_percent:.1f}% remaining)",
+            "External Power Restored",
+            "External power reconnected - running on mains again",
+            current_time,
+            cooldown_minutes,
+            priority=1
+        )
 
     def _send_throttled_alert(self, alert_type, title, message, current_time, cooldown_minutes, priority=0):
         """Send alert with throttling to prevent spam"""
@@ -1279,11 +1412,46 @@ class AlertManager:
             time_diff = (current_time - last_time).total_seconds() / 60
 
             if time_diff < cooldown_minutes:
-                return  # Skip, too soon
+                return False  # Skip, too soon
 
         # Send alert
         if self.send_alert(title, message, priority):
             self.config["last_alert_times"][alert_type] = current_time.isoformat()
+            return True
+
+        return False
+
+    def _process_threshold(self, alert_type, enabled, is_triggered, recovery_ready,
+                           trigger_title, trigger_message, recovery_title, recovery_message,
+                           current_time, cooldown_minutes, priority=0, recovery_priority=0):
+        """Handle alert activation and recovery transitions for a threshold"""
+
+        self.config.setdefault("active_alerts", {})
+        active_alerts = self.config["active_alerts"]
+        state = active_alerts.get(alert_type, {"active": False})
+        state_changed = False
+
+        if not enabled:
+            if state.get("active"):
+                state["active"] = False
+                state["last_recovery"] = current_time.isoformat()
+                state_changed = True
+        elif is_triggered:
+            if not state.get("active"):
+                if self._send_throttled_alert(alert_type, trigger_title, trigger_message, current_time, cooldown_minutes, priority=priority):
+                    state["active"] = True
+                    state["last_trigger"] = current_time.isoformat()
+                    state_changed = True
+        else:
+            if state.get("active") and recovery_ready:
+                recovery_key = f"{alert_type}_recovery"
+                if self._send_throttled_alert(recovery_key, recovery_title, recovery_message, current_time, cooldown_minutes, priority=recovery_priority):
+                    state["active"] = False
+                    state["last_recovery"] = current_time.isoformat()
+                    state_changed = True
+
+        if state_changed:
+            active_alerts[alert_type] = state
             self.save_config()
 
 # Initialize API
