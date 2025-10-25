@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="README-demo.gif" alt="Project Rhotko walkthrough" width="750" />
-</p>
+![Project Rhotko walkthrough](README-demo.gif)
 
 <p align="center">
   <a href="https://github.com/nfodor/power-monitoring">
