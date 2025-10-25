@@ -10,11 +10,11 @@
 
 # Raspberry Pi Power Monitor Dashboard
 
-Your lightweight control center for Raspberry Pi rigs backed by the Geekworm X1200/X1206 UPS. It surfaces live power metrics, network health, bypass server telemetry, and layers on notification delivery, USB power control, and CPU power-throttling toggles.
+Your lightweight control center for Raspberry Pi rigs backed by the Geekworm X1200/X1206 UPS. It surfaces live power metrics, network health, bypass server telemetry (optional integration with setip.io infrastructure), and layers on notification delivery, USB power control, and CPU power-throttling toggles.
 
 ## Highlights
 - Real-time gauges for battery, CPU, thermal and power draw.
-- Built-in bypass notifier with Pushover hooks, alert history, and health heartbeats.
+- Built-in bypass notifier with Pushover hooks, alert history, and health heartbeats (setip.io-ready but optional).
 - One-click USB high-current toggle plus CPU power-level throttling controls.
 - Smart voltage fallback scripts to protect Pi sensors (see `setup-voltage-monitoring.sh`).
 - Mobile-friendly UI that runs happily on headless Chromium or kiosk screens.
@@ -22,7 +22,7 @@ Your lightweight control center for Raspberry Pi rigs backed by the Geekworm X12
 ## Quick Start
 1. `sudo ./install.sh` – installs Python deps and the `power-dashboard.service` unit.
 2. Point a browser at `http://<pi-ip>:9434` for the live dashboard.
-3. Use the Settings panel to tune alerts, gauge sizing, and bypass endpoints.
+3. Use the Settings panel to tune alerts, gauge sizing, and bypass endpoints (only needed for setip.io deployments).
 
 ## Key Files
 - `dashboard_server.py` – Flask app/API powering the UI.
