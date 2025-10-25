@@ -1,151 +1,16 @@
-#!/usr/bin/env python3
-
 import time
 import csv
-import smbus
 import os
 from datetime import datetime
 import subprocess
+from x1200_common import X1200Monitor
 
-class X1200EnhancedMonitor:
+class X1200EnhancedMonitor(X1200Monitor):
     """Enhanced X1200 UPS monitoring with GPIO indicators"""
     
     def __init__(self):
-        self.bus = None
-        self.connected = False
-        self.device_addr = 0x36  # MAX17040G+ fuel gauge address
-        
-        # MAX17040G+ register addresses
-        self.VCELL_REG = 0x02    # Battery voltage
-        self.SOC_REG = 0x04      # State of charge (%)
-        self.MODE_REG = 0x06     # Mode register
-        self.VERSION_REG = 0x08  # Version register
-        self.CONFIG_REG = 0x0C   # Configuration register
-        self.COMMAND_REG = 0xFE  # Command register
-        
-        # GPIO pins for X1200
-        self.GPIO_CHARGING = 16   # Battery charging control
-        self.GPIO_POWER_LOSS = 6  # Power loss detection
-        
-        self.connect()
-        self.setup_gpio()
-    
-    def connect(self):
-        """Connect to X1200 MAX17040G+ fuel gauge"""
-        # Try different I2C buses where X1200 might be connected
-        for bus_num in [1, 11, 4]:
-            try:
-                print(f"Trying X1200 MAX17040G+ on I2C bus {bus_num} at address 0x{self.device_addr:02x}")
-                bus = smbus.SMBus(bus_num)
-                
-                # Test communication by reading version register
-                version = bus.read_word_data(self.device_addr, self.VERSION_REG)
-                version = ((version & 0xFF) << 8) | ((version & 0xFF00) >> 8)  # Swap bytes
-                
-                print(f"✅ Connected to X1200 MAX17040G+ (version: 0x{version:04x})")
-                self.bus = bus
-                self.bus_num = bus_num
-                self.connected = True
-                return True
-                
-            except Exception as e:
-                if bus:
-                    bus.close()
-                continue
-        
-        print("❌ Could not connect to X1200 MAX17040G+ fuel gauge")
-        return False
-    
-    def setup_gpio(self):
-        """Setup GPIO monitoring using gpiod"""
-        try:
-            # Export GPIOs if not already exported
-            for gpio in [self.GPIO_CHARGING, self.GPIO_POWER_LOSS]:
-                if not os.path.exists(f"/sys/class/gpio/gpio{gpio}"):
-                    with open("/sys/class/gpio/export", "w") as f:
-                        f.write(str(gpio))
-                    time.sleep(0.1)
-                
-                # Set as input
-                with open(f"/sys/class/gpio/gpio{gpio}/direction", "w") as f:
-                    f.write("in")
-            
-            print("✅ GPIO setup complete")
-        except Exception as e:
-            print(f"⚠️  GPIO setup warning: {e}")
-            print("   Trying gpiod tools instead...")
-    
-    def read_word_swapped(self, register):
-        """Read word data with byte swapping for MAX17040G+"""
-        if not self.connected:
-            return None
-            
-        try:
-            data = self.bus.read_word_data(self.device_addr, register)
-            # MAX17040G+ returns MSB first, but SMBus expects LSB first
-            return ((data & 0xFF) << 8) | ((data & 0xFF00) >> 8)
-        except:
-            return None
-    
-    def get_battery_voltage(self):
-        """Get battery voltage in volts"""
-        vcell = self.read_word_swapped(self.VCELL_REG)
-        if vcell is not None:
-            # VCELL register: voltage = value * 1.25mV / 16
-            return (vcell >> 4) * 1.25 / 1000.0
-        return None
-    
-    def get_battery_percentage(self):
-        """Get battery state of charge as percentage"""
-        soc = self.read_word_swapped(self.SOC_REG)
-        if soc is not None:
-            # SOC register: percentage = value / 256
-            return soc / 256.0
-        return None
-    
-    def get_gpio_state(self, gpio):
-        """Read GPIO state"""
-        try:
-            # Try sysfs method first
-            with open(f"/sys/class/gpio/gpio{gpio}/value", "r") as f:
-                return int(f.read().strip())
-        except:
-            # Fallback to gpiod
-            try:
-                result = subprocess.run(['gpioget', 'gpiochip0', str(gpio)], 
-                                      capture_output=True, text=True, timeout=1)
-                if result.returncode == 0:
-                    return int(result.stdout.strip())
-            except:
-                pass
-        return None
-    
-    def is_charging(self):
-        """Check if battery is charging (GPIO16)"""
-        state = self.get_gpio_state(self.GPIO_CHARGING)
-        if state is not None:
-            # GPIO16 low = charging, high = not charging
-            return state == 0
-        return None
-    
-    def has_external_power(self):
-        """Check if external power is connected (GPIO6)"""
-        state = self.get_gpio_state(self.GPIO_POWER_LOSS)
-        if state is not None:
-            # GPIO6 high = external power present, low = power loss
-            return state == 1
-        return None
-    
-    def get_power_source(self):
-        """Determine current power source"""
-        has_power = self.has_external_power()
-        if has_power is None:
-            return "Unknown"
-        elif has_power:
-            return "External USB-C"
-        else:
-            return "Battery"
-    
+        super().__init__()
+
     def estimate_battery_current(self, voltage, percentage, prev_data, time_delta):
         """Estimate battery current based on voltage and capacity changes"""
         if not prev_data or time_delta <= 0:
@@ -333,7 +198,7 @@ def main():
             print(f"{status} {data['timestamp']}: "
                   f"🔋 {battery_str} ({voltage_str}), "
                   f"⚡ {data['power_source']}, "
-                  f"{'🔌 Charging' if data['is_charging'] else '🔋 Discharging'}")
+                  f"{('🔌 Charging' if data['is_charging'] else '🔋 Discharging')}")
             
             # Print events on separate line for visibility
             if events:

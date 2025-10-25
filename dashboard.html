@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edge Cloud Worker Monitor</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Project Rhotko</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;600;700&family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-gauge@0.3.0/dist/chartjs-gauge.min.js"></script>
     <style>
@@ -57,20 +57,20 @@
         }
         
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: 'Source Sans Pro', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
             min-height: 100vh;
             transition: all 0.2s ease;
-            font-size: 14px;
-            line-height: 1.5;
+            font-size: 12px;
+            line-height: 1.4;
             margin: 0;
             padding: 0;
         }
         
         .header {
             background: var(--bg-secondary);
-            padding: 16px 24px;
+            padding: 12px 18px;
             border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
@@ -79,27 +79,207 @@
             width: 100%;
             box-sizing: border-box;
         }
-        
+
         .header-left {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .header-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex: 2;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            justify-content: flex-end;
         }
         
         .header-logo {
-            width: 40px;
+            width: 32px;
             height: auto;
             flex-shrink: 0;
         }
-        
+
         .header h1 {
-            font-size: 20px;
+            font-size: 16px;
             font-weight: 600;
             margin: 0;
         }
-        
+
+        .project-rhotko-title {
+            background-color: #000000 !important;
+            color: #ffffff !important;
+            width: 80%;
+            text-align: center;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 16px !important;
+            font-weight: 600 !important;
+            font-family: 'Roboto', 'Source Sans Pro', sans-serif !important;
+            letter-spacing: 0.5px !important;
+            margin: 0 0 4px 0 !important;
+            display: inline-block;
+            box-sizing: border-box;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .project-rhotko-title:hover {
+            background-color: #333333 !important;
+            transform: scale(1.02) !important;
+        }
+
+        /* Rothko Painting Modal */
+        .rothko-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 10000;
+            display: none;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .rothko-modal.active {
+            display: block;
+        }
+
+        /* Make dashboard content translucent when modal is open */
+        body.rothko-modal-open > *:not(.rothko-modal) {
+            opacity: 0.3;
+            filter: blur(2px);
+            transition: all 0.3s ease;
+        }
+
+        .rothko-painting-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .rothko-painting {
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            cursor: pointer;
+        }
+
+        /* iPhone proportion canvas on larger screens */
+        @media screen and (min-width: 768px) {
+            .rothko-painting-container {
+                background: rgba(0,0,0,0.3);
+                backdrop-filter: blur(10px);
+            }
+
+            .rothko-painting {
+                width: min(100vh * 0.46, 400px); /* iPhone 13 ratio: 19.5:9 ≈ 0.46 */
+                height: min(100vh, 870px);
+                object-fit: cover;
+                border-radius: 20px;
+                box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+            }
+        }
+
+        .rothko-description {
+            background: rgba(0,0,0,0.9);
+            color: #ffffff;
+            padding: 40px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+            font-family: 'Source Sans Pro', sans-serif;
+        }
+
+        .rothko-description h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #ffffff;
+            text-align: center;
+        }
+
+        .rothko-description p {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #cccccc;
+        }
+
+        .close-hint {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+            font-family: 'Source Sans Pro', sans-serif;
+            background: rgba(0,0,0,0.7);
+            padding: 8px 12px;
+            border-radius: 4px;
+            z-index: 10001;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close-hint:hover {
+            background: rgba(255,255,255,0.2);
+            color: rgba(255,255,255,1);
+        }
+
+        .header-subtitle {
+            font-size: 10px !important;
+            color: var(--text-secondary) !important;
+            margin: 0 !important;
+            text-align: center !important;
+            font-family: 'Source Sans Pro', 'Roboto', sans-serif !important;
+        }
+
+        /* Dashboard Typography Hierarchy */
+        .gauge-value {
+            font-family: 'JetBrains Mono', 'Roboto', monospace !important;
+            font-weight: 600 !important;
+        }
+
+        .gauge-title {
+            font-family: 'Source Sans Pro', 'Roboto', sans-serif !important;
+            font-weight: 500 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.8px !important;
+        }
+
+        .gauge-unit {
+            font-family: 'Source Sans Pro', 'Roboto', sans-serif !important;
+            font-weight: 400 !important;
+        }
+
+        .metric-value {
+            font-family: 'JetBrains Mono', 'Roboto', monospace !important;
+            font-weight: 600 !important;
+        }
+
+        .metric-label {
+            font-family: 'Source Sans Pro', 'Roboto', sans-serif !important;
+            font-weight: 500 !important;
+        }
+
         .header p {
-            font-size: 12px;
+            font-size: 10px;
             color: var(--text-secondary);
             margin: 0;
         }
@@ -108,11 +288,11 @@
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             color: var(--text-primary);
-            padding: 6px 12px;
-            border-radius: 6px;
+            padding: 4px 8px;
+            border-radius: 4px;
             cursor: pointer;
             transition: all 0.2s ease;
-            font-size: 12px;
+            font-size: 10px;
             font-weight: 500;
         }
         
@@ -144,6 +324,19 @@
             font-size: 18px;
             width: 24px;
             text-align: center;
+        }
+        
+        .power-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        /* Single line layout for label and status */
+        .power-line {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
         }
         
         .power-label {
@@ -196,9 +389,50 @@
             position: relative;
         }
         
+        /* Ticker refresh indicators */
+        .ticker-refresh-indicator {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 6px;
+            height: 6px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+        
+        .ticker-refresh-indicator.left {
+            left: 8px;
+        }
+        
+        .ticker-refresh-indicator.right {
+            right: 8px;
+        }
+        
+        .ticker-refresh-indicator.blink {
+            animation: tickerBlink 1s ease-out;
+        }
+        
+        @keyframes tickerBlink {
+            0% {
+                opacity: 0;
+                box-shadow: 0 0 0 0 var(--accent-color);
+            }
+            50% {
+                opacity: 1;
+                box-shadow: 0 0 10px 2px var(--accent-color);
+            }
+            100% {
+                opacity: 0;
+                box-shadow: 0 0 0 0 var(--accent-color);
+            }
+        }
+        
         .ticker-tape {
             display: flex;
-            animation: scroll 30s linear infinite;
+            animation: scroll 10s linear infinite;
             height: 100%;
             align-items: center;
             white-space: nowrap;
@@ -288,7 +522,25 @@
             color: white;
             border-color: var(--blue-color);
         }
-        
+
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.8);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-left: 8px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 1);
+            transform: translateY(-1px);
+        }
+
         .settings-modal {
             position: fixed;
             top: 0;
@@ -312,6 +564,9 @@
             padding: 24px;
             max-width: 400px;
             width: 90%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
             box-shadow: var(--shadow-lg);
             border: 1px solid var(--border-color);
         }
@@ -346,11 +601,55 @@
             color: var(--text-primary);
             font-size: 14px;
         }
+
+        /* Password field container */
+        .password-field-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .password-field-container .settings-input {
+            flex: 1;
+            padding-right: 80px; /* Space for icons */
+        }
+
+        .password-icons {
+            position: absolute;
+            right: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .password-icon {
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .password-icon:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .password-icon.copied {
+            color: var(--accent-color);
+        }
         
         .settings-buttons {
             display: flex;
             gap: 8px;
             justify-content: flex-end;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+            flex-shrink: 0;
         }
         
         .settings-btn {
@@ -373,12 +672,60 @@
             background: var(--bg-card);
             color: var(--text-primary);
         }
-        
+
+        .default-btn {
+            padding: 4px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-card);
+            color: var(--text-muted);
+            font-size: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 60px;
+        }
+
+        .default-btn:hover {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
         /* Bypass Server Settings Styles */
         .settings-tabs {
             display: flex;
             border-bottom: 1px solid var(--border-color);
             margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+        
+        /* Tab content container with scrolling */
+        .settings-tab-content {
+            max-height: calc(90vh - 200px); /* Account for modal padding, tabs, and buttons */
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 10px; /* Space for scrollbar */
+            flex: 1;
+        }
+        
+        /* Custom scrollbar for settings content */
+        .settings-tab-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .settings-tab-content::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+            border-radius: 4px;
+        }
+        
+        .settings-tab-content::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+        
+        .settings-tab-content::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
         }
         
         .settings-tab {
@@ -400,6 +747,223 @@
         
         .settings-tab:hover {
             color: var(--text-primary);
+        }
+
+        /* Power Level Controls */
+        .power-level-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .power-level-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .power-level-option input[type="radio"] {
+            margin-top: 2px;
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent-color);
+        }
+
+        .power-level-label {
+            flex: 1;
+            cursor: pointer;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .power-level-label:hover {
+            border-color: var(--accent-color);
+            background: var(--bg-primary);
+        }
+
+        .power-level-option input[type="radio"]:checked + .power-level-label {
+            border-color: var(--accent-color);
+            background: var(--bg-primary);
+            box-shadow: 0 0 0 1px var(--accent-color);
+        }
+
+        .power-level-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .power-level-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* USB Status Info */
+        .usb-status-info {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .throttling-current-status {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-label {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .status-value {
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .status-value.success {
+            color: var(--accent-color);
+        }
+
+        .status-value.warning {
+            color: var(--warning-color);
+        }
+
+        .status-value.error {
+            color: var(--danger-color);
+        }
+
+        /* Internet Connectivity Status */
+        .connectivity-bar {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 8px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .connectivity-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .connectivity-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .connectivity-indicator.online {
+            background: var(--accent-color);
+        }
+
+        .connectivity-indicator.offline {
+            background: var(--danger-color);
+        }
+
+        .connectivity-indicator.checking {
+            background: var(--warning-color);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .connectivity-details {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            gap: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .connectivity-bar {
+                padding: 6px 16px;
+                font-size: 12px;
+            }
+            
+            .connectivity-details {
+                display: none;
+            }
+        }
+
+        /* Force Layout Classes */
+        .force-single {
+            grid-template-columns: 1fr !important;
+        }
+        
+        .force-grid {
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+        }
+        
+        /* Gauge Size Variations */
+        .gauge-small .gauge-card {
+            min-width: 100px !important;
+            height: 80px !important;
+            padding: 10px !important;
+        }
+        
+        .gauge-small .gauge-canvas,
+        .gauge-small .chart-fallback {
+            width: 50px !important;
+            height: 50px !important;
+        }
+        
+        .gauge-small .gauge-label,
+        .gauge-small .gauge-title {
+            font-size: 11px !important;
+        }
+        
+        .gauge-small .gauge-value {
+            font-size: 16px !important;
+        }
+        
+        .gauge-large .gauge-card {
+            min-width: 180px !important;
+            height: 140px !important;
+            padding: 25px !important;
+        }
+        
+        .gauge-large .gauge-canvas,
+        .gauge-large .chart-fallback {
+            width: 100px !important;
+            height: 100px !important;
+        }
+        
+        .gauge-large .gauge-label,
+        .gauge-large .gauge-title {
+            font-size: 16px !important;
+        }
+        
+        .gauge-large .gauge-value {
+            font-size: 28px !important;
         }
         
         .bypass-info-panel {
@@ -426,7 +990,7 @@
         }
         
         .info-value {
-            font-family: monospace;
+            font-family: 'JetBrains Mono', 'Roboto', monospace;
             font-size: 12px;
             color: var(--text-primary);
             background: var(--bg-primary);
@@ -514,7 +1078,7 @@
         }
         
         .server-url {
-            font-family: monospace;
+            font-family: 'JetBrains Mono', 'Roboto', monospace;
             font-weight: 600;
             color: var(--text-primary);
         }
@@ -661,6 +1225,344 @@
                 padding: 10px;
                 gap: 15px;
             }
+
+            /* Mobile responsiveness for gauges - Horizontal scrolling carousel */
+            .gauges-container {
+                display: flex !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                scroll-snap-type: x mandatory !important;
+                -webkit-overflow-scrolling: touch !important;
+                scrollbar-width: none !important;
+                -ms-overflow-style: none !important;
+                gap: 0 !important;
+                padding: 10px !important;
+                margin-bottom: 12px !important;
+                position: relative !important;
+            }
+
+            .gauges-container::-webkit-scrollbar {
+                display: none !important;
+            }
+
+            /* Add scroll indicator dots */
+            .gauges-container::after {
+                content: '● ● ● ● ● ●' !important;
+                position: absolute !important;
+                bottom: -8px !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                font-size: 8px !important;
+                color: var(--text-muted) !important;
+                letter-spacing: 4px !important;
+                opacity: 0.5 !important;
+                pointer-events: none !important;
+            }
+
+            .gauge-card {
+                flex: 0 0 calc(100vw - 40px) !important;
+                scroll-snap-align: center !important;
+                margin: 0 5px !important;
+                min-width: unset !important;
+                max-width: calc(100vw - 40px) !important;
+                padding: 16px !important;
+                font-size: 16px !important;
+                border-radius: 12px !important;
+                box-sizing: border-box !important;
+                text-align: center !important;
+            }
+
+            .gauge-title {
+                font-size: 12px !important;
+                margin-bottom: 8px !important;
+            }
+
+            .gauge-value {
+                font-size: 24px !important;
+                margin-top: 8px !important;
+            }
+
+            .gauge-unit {
+                font-size: 12px !important;
+                margin-top: 4px !important;
+            }
+            
+            .network-gauges-container {
+                grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+                gap: 4px;
+                padding: 6px 10px;
+            }
+            
+            .gauge-card {
+                min-width: unset;
+                padding: 3px 1px;
+                font-size: 9px;
+            }
+            
+            .gauge-title {
+                font-size: 7px !important;
+                margin-bottom: 1px;
+            }
+            
+            .gauge-value {
+                font-size: 10px !important;
+                margin-top: 1px;
+            }
+            
+            .gauge-unit {
+                font-size: 7px !important;
+                margin-top: 1px;
+            }
+            
+            /* Header adjustments for mobile */
+            .header {
+                flex-direction: column;
+                gap: 8px;
+                padding: 10px;
+            }
+            
+            .header-left {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .logo-container {
+                padding: 8px 15px;
+                gap: 10px;
+            }
+            
+            .header-logo {
+                width: 60px;
+            }
+            
+            .logo-text h1 {
+                font-size: 14px;
+            }
+            
+            .logo-text p {
+                font-size: 10px;
+            }
+            
+            .header-right {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        /* iPhone specific optimizations - Horizontal scrolling carousel */
+        @media only screen and (max-width: 414px) and (min-width: 321px) {
+            /* iPhone 13/14/15 and similar */
+            .gauges-container,
+            .gauges-container.small {
+                display: flex !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                scroll-snap-type: x mandatory !important;
+                -webkit-overflow-scrolling: touch !important;
+                scrollbar-width: none !important;
+                -ms-overflow-style: none !important;
+                gap: 0 !important;
+                padding: 8px !important;
+                margin-bottom: 12px !important;
+            }
+
+            .gauges-container::-webkit-scrollbar,
+            .gauges-container.small::-webkit-scrollbar {
+                display: none !important;
+            }
+
+            .gauge-card {
+                flex: 0 0 calc(100vw - 32px) !important;
+                scroll-snap-align: center !important;
+                margin: 0 4px !important;
+                min-width: unset !important;
+                max-width: calc(100vw - 32px) !important;
+                padding: 12px !important;
+                font-size: 14px !important;
+                border-radius: 12px !important;
+                box-sizing: border-box !important;
+                text-align: center !important;
+            }
+
+            .gauge-title {
+                font-size: 11px !important;
+                margin-bottom: 6px !important;
+            }
+
+            .gauge-value {
+                font-size: 20px !important;
+                margin-top: 6px !important;
+            }
+
+            .gauge-unit {
+                font-size: 10px !important;
+                margin-top: 3px !important;
+            }
+            
+            .network-gauges-container {
+                grid-template-columns: repeat(auto-fit, minmax(45px, 1fr)) !important;
+                gap: 3px !important;
+                padding: 4px 8px !important;
+            }
+            
+            .gauge-card {
+                min-width: unset !important;
+                padding: 4px 2px !important;
+                font-size: 11px !important;
+            }
+            
+            /* Ensure logo loads properly on iOS */
+            .header-logo {
+                width: 50px;
+                -webkit-transform: translateZ(0);
+                transform: translateZ(0);
+                backface-visibility: hidden;
+            }
+            
+            .logo-container {
+                -webkit-backface-visibility: hidden;
+                backface-visibility: hidden;
+                -webkit-transform: translate3d(0,0,0);
+                transform: translate3d(0,0,0);
+            }
+        }
+        
+        /* Very small screens - iPhone SE, older Android - Horizontal scrolling carousel */
+        @media only screen and (max-width: 320px) {
+            .gauges-container,
+            .gauges-container.small {
+                display: flex !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                scroll-snap-type: x mandatory !important;
+                -webkit-overflow-scrolling: touch !important;
+                scrollbar-width: none !important;
+                -ms-overflow-style: none !important;
+                gap: 0 !important;
+                padding: 6px !important;
+                margin-bottom: 12px !important;
+            }
+
+            .gauges-container::-webkit-scrollbar,
+            .gauges-container.small::-webkit-scrollbar {
+                display: none !important;
+            }
+
+            .gauge-card {
+                flex: 0 0 calc(100vw - 24px) !important;
+                scroll-snap-align: center !important;
+                margin: 0 3px !important;
+                min-width: unset !important;
+                max-width: calc(100vw - 24px) !important;
+                padding: 10px !important;
+                font-size: 12px !important;
+                border-radius: 10px !important;
+                box-sizing: border-box !important;
+                text-align: center !important;
+            }
+
+            .gauge-title {
+                font-size: 9px !important;
+                margin-bottom: 4px !important;
+            }
+
+            .gauge-value {
+                font-size: 18px !important;
+                margin-top: 4px !important;
+            }
+
+            .gauge-unit {
+                font-size: 8px !important;
+                margin-top: 2px !important;
+            }
+            
+            .network-gauges-container {
+                grid-template-columns: repeat(auto-fit, minmax(35px, 1fr)) !important;
+                gap: 2px !important;
+                padding: 3px 6px !important;
+            }
+            
+            .gauge-card {
+                padding: 3px 1px !important;
+                font-size: 9px !important;
+                min-width: unset !important;
+            }
+            
+            .gauge-title {
+                font-size: 7px !important;
+            }
+            
+            .gauge-value {
+                font-size: 9px !important;
+            }
+            
+            .gauge-unit {
+                font-size: 6px !important;
+            }
+        }
+        
+        /* SINGLE COLUMN MOBILE LAYOUT */
+        @media screen and (max-width: 400px) {
+            .gauges-container, 
+            .gauges-container.small,
+            .network-gauges-container { 
+                display: grid !important; 
+                grid-template-columns: 1fr !important; 
+                gap: 12px !important; 
+                padding: 15px !important; 
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            .gauge-card { 
+                min-width: unset !important; 
+                width: 100% !important; 
+                height: 120px !important;
+                padding: 20px !important; 
+                font-size: 14px !important;
+                box-sizing: border-box !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                margin: 0 !important;
+                border-radius: 12px !important;
+                background: var(--bg-card) !important;
+                box-shadow: var(--shadow) !important;
+            }
+            
+            .gauge-canvas, .chart-fallback {
+                width: 80px !important;
+                height: 80px !important;
+                margin: 0 !important;
+                flex-shrink: 0 !important;
+            }
+            
+            .gauge-info {
+                flex-grow: 1 !important;
+                margin-left: 20px !important;
+                text-align: left !important;
+            }
+            
+            .gauge-title, .gauge-label { 
+                font-size: 18px !important; 
+                font-weight: 600 !important;
+                margin-bottom: 8px !important;
+                display: block !important;
+                color: var(--text-primary) !important;
+            }
+            .gauge-value { 
+                font-size: 32px !important; 
+                font-weight: 700 !important; 
+                display: block !important;
+                margin: 0 !important;
+                color: var(--accent-color) !important;
+                line-height: 1 !important;
+            }
+            .gauge-unit { 
+                font-size: 16px !important; 
+                display: inline !important;
+                margin-left: 4px !important;
+                color: var(--text-secondary) !important;
+            }
         }
         
         .chart-card {
@@ -680,16 +1582,19 @@
         
         .gauges-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            grid-auto-flow: column;
+            gap: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            align-items: stretch;
         }
         
         .gauge-card {
             background: var(--bg-card);
-            border-radius: 8px;
-            padding: 12px;
+            border-radius: 6px;
+            padding: 8px;
             text-align: center;
             box-shadow: var(--shadow);
             border: 1px solid var(--border-color);
@@ -704,25 +1609,25 @@
         }
         
         .gauge-title {
-            font-size: 11px;
+            font-size: 9px;
             font-weight: 500;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
             color: var(--text-secondary);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
         
         .gauge-value {
-            font-size: 18px;
+            font-size: 14px;
             font-weight: 700;
-            margin-top: 6px;
+            margin-top: 4px;
             color: var(--text-primary);
         }
         
         .gauge-unit {
-            font-size: 10px;
+            font-size: 8px;
             color: var(--text-muted);
-            margin-top: 2px;
+            margin-top: 1px;
             font-weight: 500;
         }
         
@@ -793,6 +1698,84 @@
         
         .core-indicator:hover::after {
             opacity: 1;
+        }
+
+        /* Power Reserve Banner */
+        .power-reserve-banner {
+            background: linear-gradient(135deg, var(--accent-color), #059669);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 12px;
+            box-shadow: var(--shadow-lg);
+            color: white;
+        }
+
+        .power-reserve-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .power-reserve-main {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .power-reserve-icon {
+            font-size: 24px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .power-reserve-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .power-reserve-time {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .power-reserve-details {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+            text-align: right;
+        }
+
+        .power-reserve-battery {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .power-reserve-status {
+            font-size: 10px;
+            background: rgba(255,255,255,0.2);
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        /* Power Reserve States */
+        .power-reserve-banner.critical {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+        }
+
+        .power-reserve-banner.warning {
+            background: linear-gradient(135deg, var(--warning-color), #d97706);
+        }
+
+        .power-reserve-banner.battery-only {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
         }
         
         .chart-title {
@@ -889,6 +1872,11 @@
             .power-indicator {
                 justify-content: center;
             }
+            
+            /* Keep single-line layout centered on mobile */
+            .power-line {
+                justify-content: center;
+            }
         }
         
         @media (max-width: 480px) {
@@ -915,34 +1903,37 @@
         
         .metric-card {
             background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            padding: 20px;
+            border-radius: 8px;
+            padding: 12px;
             text-align: center;
             backdrop-filter: blur(5px);
         }
         
         .metric-value {
-            font-size: 2.5em;
+            font-size: 2.0em;
             font-weight: bold;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
             line-height: 1;
+            color: var(--text-primary);
         }
         
         .metric-unit {
-            font-size: 0.8em;
+            font-size: 0.7em;
             font-weight: normal;
             color: var(--text-muted);
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
         
         .metric-label {
-            font-size: 0.9em;
+            font-size: 0.8em;
             opacity: 0.8;
+            color: var(--text-secondary);
         }
         
         .metric-trend {
-            font-size: 0.8em;
-            margin-top: 10px;
+            font-size: 0.7em;
+            margin-top: 6px;
+            color: var(--text-muted);
         }
         
         .trend-up { color: #ff6b6b; }
@@ -983,7 +1974,7 @@
             background: rgba(255,255,255,0.2);
             padding: 2px 6px;
             border-radius: 4px;
-            font-family: monospace;
+            font-family: 'JetBrains Mono', 'Roboto', monospace;
         }
         
         .diagnostic-links {
@@ -1014,39 +2005,67 @@
 <body>
     <div class="header">
         <div class="header-left">
-            <img class="header-logo" src="setip-logo.png" alt="Setip.io Logo">
-            <div>
-                <h1>Edge Cloud Worker Monitor</h1>
-                <p>Real-time system monitoring</p>
-            </div>
+            <img class="header-logo" src="setip-logo.png" alt="Setip.io Logo" onerror="this.style.display='none'; console.log('Logo failed to load')">
         </div>
-        <div>
+        <div class="header-center">
+            <h1 class="project-rhotko-title" onclick="showRothkoPainting()">Project Rhotko</h1>
+            <p class="header-subtitle">Real-time system monitoring</p>
+        </div>
+        <div class="header-right">
             <button class="settings-toggle" onclick="toggleSettings()">Settings</button>
             <button class="theme-toggle" onclick="toggleTheme()">Dark Mode</button>
+            <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
     </div>
-    
+
+    <!-- Rothko Painting Modal -->
+    <div id="rothkoModal" class="rothko-modal">
+        <div class="close-hint" onclick="closeRothkoModal()">✕ Tap painting to close</div>
+        <div class="rothko-painting-container">
+            <img id="rothkoPainting" class="rothko-painting" src="" alt="Mark Rothko Painting" onclick="closeRothkoModal()">
+        </div>
+        <div id="rothkoDescription" class="rothko-description">
+            <!-- Description will be populated by JavaScript -->
+        </div>
+    </div>
+
     <!-- Power Status Indicators -->
     <div class="power-indicators">
         <div class="power-indicator" id="externalPowerIndicator">
             <div class="power-icon" id="externalPowerIcon">⚡</div>
-            <div>
-                <div class="power-label">External Power</div>
-                <div class="power-status" id="externalPowerStatus">--</div>
+            <div class="power-text">
+                <div class="power-line">
+                    <div class="power-label">External Power</div>
+                    <div class="power-status" id="externalPowerStatus">--</div>
+                </div>
             </div>
         </div>
         <div class="power-indicator" id="chargingIndicator">
             <div class="power-icon" id="chargingIcon">⚡</div>
-            <div>
-                <div class="power-label">Charging</div>
-                <div class="power-status" id="chargingStatus">--</div>
+            <div class="power-text">
+                <div class="power-line">
+                    <div class="power-label">Charging</div>
+                    <div class="power-status" id="chargingStatus">--</div>
+                </div>
                 <div class="power-level" id="chargingLevel">--</div>
+            </div>
+        </div>
+        <div class="power-indicator" id="internetIndicator">
+            <div class="power-icon" id="internetIcon">●</div>
+            <div class="power-text">
+                <div class="power-line">
+                    <div class="power-label">Internet</div>
+                    <div class="power-status" id="internetStatus">--</div>
+                </div>
+                <div class="power-level" id="internetLatency">--</div>
             </div>
         </div>
     </div>
     
     <!-- Ticker Tape -->
     <div class="ticker-container">
+        <div class="ticker-refresh-indicator left" id="tickerRefreshLeft"></div>
+        <div class="ticker-refresh-indicator right" id="tickerRefreshRight"></div>
         <div class="ticker-tape" id="tickerTape">
             <div class="ticker-item">
                 <span class="ticker-label">CPU:</span>
@@ -1086,6 +2105,11 @@
                 <span class="ticker-value" id="tickerCurrent">--</span>
                 <span class="ticker-unit">A</span>
             </div>
+            <div class="ticker-item">
+                <span class="ticker-label">UPTIME:</span>
+                <span class="ticker-value" id="tickerUptime">--</span>
+                <span class="ticker-unit"></span>
+            </div>
         </div>
     </div>
     
@@ -1102,20 +2126,175 @@
             <!-- Settings Tabs -->
             <div class="settings-tabs">
                 <button class="settings-tab active" onclick="showSettingsTab('alerts')">Alerts</button>
+                <button class="settings-tab" onclick="showSettingsTab('display')">Display</button>
+                <button class="settings-tab" onclick="showSettingsTab('usb')">USB Power</button>
+                <button class="settings-tab" onclick="showSettingsTab('throttling')">Throttling</button>
                 <button class="settings-tab" onclick="showSettingsTab('bypass')">Bypass Servers</button>
             </div>
             
             <!-- Alert Settings Tab -->
             <div class="settings-tab-content" id="alertsTab">
-                <div class="settings-title">Alert Settings</div>
+                <div class="settings-title">Pushover Notification Settings</div>
+
                 <div class="settings-field">
-                    <label class="settings-label">Pushbullet API Key</label>
-                    <input type="password" class="settings-input" id="pushbulletKey" placeholder="Enter your Pushbullet API key">
+                    <label class="settings-label">
+                        <input type="checkbox" id="pushoverEnabled" style="margin-right: 8px;">
+                        Enable Pushover Notifications
+                    </label>
                 </div>
+
                 <div class="settings-field">
-                    <label class="settings-label">Critical Alert Threshold</label>
-                    <input type="number" class="settings-input" id="criticalThreshold" placeholder="85" value="85">
-                    <small style="color: var(--text-muted); font-size: 11px;">CPU/Memory/Temperature percentage threshold</small>
+                    <label class="settings-label">Pushover API Token</label>
+                    <div class="password-field-container">
+                        <input type="password" class="settings-input" id="pushoverApiToken" placeholder="Your app API token">
+                        <div class="password-icons">
+                            <span class="password-icon" onclick="togglePasswordVisibility('pushoverApiToken')" title="Toggle visibility">👁️</span>
+                            <span class="password-icon" onclick="copyToClipboard('pushoverApiToken')" title="Copy to clipboard">📋</span>
+                        </div>
+                    </div>
+                    <small style="color: var(--text-muted); font-size: 11px;">Get from <a href="https://pushover.net/" target="_blank">pushover.net</a> → Your Applications</small>
+                </div>
+
+                <div class="settings-field">
+                    <label class="settings-label">Pushover User Key</label>
+                    <div class="password-field-container">
+                        <input type="password" class="settings-input" id="pushoverUserKey" placeholder="Your user/group key">
+                        <div class="password-icons">
+                            <span class="password-icon" onclick="togglePasswordVisibility('pushoverUserKey')" title="Toggle visibility">👁️</span>
+                            <span class="password-icon" onclick="copyToClipboard('pushoverUserKey')" title="Copy to clipboard">📋</span>
+                        </div>
+                    </div>
+                    <small style="color: var(--text-muted); font-size: 11px;">Found on your Pushover dashboard</small>
+                </div>
+
+                <div class="settings-field">
+                    <button class="settings-btn secondary" onclick="testPushoverAlert()">Send Test Alert</button>
+                </div>
+
+                <div class="settings-title" style="margin-top: 20px;">Alert Thresholds</div>
+
+                <div class="settings-field">
+                    <label class="settings-label">
+                        <input type="checkbox" id="batteryLowEnabled" style="margin-right: 8px;" checked>
+                        Battery Low Warning
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+                        <input type="range" id="batteryLowThreshold" min="5" max="50" value="20" style="flex: 1;">
+                        <span id="batteryLowValue" style="min-width: 40px;">20%</span>
+                        <button class="default-btn" onclick="resetToDefault('batteryLow', 20)" title="Reset to default (20%)">DEFAULT</button>
+                    </div>
+                </div>
+
+                <div class="settings-field">
+                    <label class="settings-label">
+                        <input type="checkbox" id="batteryCriticalEnabled" style="margin-right: 8px;" checked>
+                        Battery Critical Alert
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+                        <input type="range" id="batteryCriticalThreshold" min="1" max="25" value="10" style="flex: 1;">
+                        <span id="batteryCriticalValue" style="min-width: 40px;">10%</span>
+                        <button class="default-btn" onclick="resetToDefault('batteryCritical', 10)" title="Reset to default (10%)">DEFAULT</button>
+                    </div>
+                </div>
+
+                <div class="settings-field">
+                    <label class="settings-label">
+                        <input type="checkbox" id="cpuTempEnabled" style="margin-right: 8px;" checked>
+                        High CPU Temperature
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+                        <input type="range" id="cpuTempThreshold" min="60" max="85" value="70" style="flex: 1;">
+                        <span id="cpuTempValue" style="min-width: 40px;">70°C</span>
+                        <button class="default-btn" onclick="resetToDefault('cpuTemp', 70)" title="Reset to default (70°C)">DEFAULT</button>
+                    </div>
+                </div>
+
+                <div class="settings-field">
+                    <label class="settings-label">
+                        <input type="checkbox" id="cpuUsageEnabled" style="margin-right: 8px;" checked>
+                        High CPU Usage
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+                        <input type="range" id="cpuUsageThreshold" min="50" max="95" value="80" style="flex: 1;">
+                        <span id="cpuUsageValue" style="min-width: 40px;">80%</span>
+                    </div>
+                </div>
+
+                <div class="settings-field">
+                    <label class="settings-label">
+                        <input type="checkbox" id="memoryEnabled" style="margin-right: 8px;" checked>
+                        High Memory Usage
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+                        <input type="range" id="memoryThreshold" min="70" max="98" value="90" style="flex: 1;">
+                        <span id="memoryValue" style="min-width: 40px;">90%</span>
+                        <button class="default-btn" onclick="resetToDefault('memory', 90)" title="Reset to default (90%)">DEFAULT</button>
+                    </div>
+                </div>
+
+                <div class="settings-field">
+                    <label class="settings-label">
+                        <input type="checkbox" id="powerLossEnabled" style="margin-right: 8px;" checked>
+                        External Power Loss Alert
+                    </label>
+                    <small style="color: var(--text-muted); font-size: 11px;">Alert when system switches to battery power</small>
+                </div>
+            </div>
+            
+            <!-- Display Settings Tab -->
+            <div class="settings-tab-content" id="displayTab" style="display: none;">
+                <div class="settings-title">Display & Layout Settings</div>
+                
+                <!-- Mobile Layout Settings -->
+                <div class="settings-field">
+                    <label class="settings-label">Mobile Layout Mode</label>
+                    <select class="settings-input" id="mobileLayout">
+                        <option value="auto">Auto (Single column on small screens)</option>
+                        <option value="single">Always single column on mobile</option>
+                        <option value="grid">Always use grid layout</option>
+                    </select>
+                </div>
+                
+                <!-- Gauge Size Settings -->
+                <div class="settings-field">
+                    <label class="settings-label">Gauge Size</label>
+                    <select class="settings-input" id="gaugeSize">
+                        <option value="small">Small (Compact)</option>
+                        <option value="medium">Medium (Default)</option>
+                        <option value="large">Large (Easy to read)</option>
+                    </select>
+                </div>
+                
+                <!-- Connection Check Settings -->
+                <div class="settings-field">
+                    <label class="settings-label">Internet Check Interval</label>
+                    <select class="settings-input" id="connectivityInterval">
+                        <option value="10">Every 10 seconds</option>
+                        <option value="30">Every 30 seconds (Default)</option>
+                        <option value="60">Every minute</option>
+                        <option value="300">Every 5 minutes</option>
+                    </select>
+                </div>
+                
+                <!-- Auto-refresh Settings -->
+                <div class="settings-field">
+                    <label class="settings-label">Data Refresh Rate</label>
+                    <select class="settings-input" id="refreshRate">
+                        <option value="1">Every 1 second</option>
+                        <option value="5">Every 5 seconds (Default)</option>
+                        <option value="10">Every 10 seconds</option>
+                        <option value="30">Every 30 seconds</option>
+                    </select>
+                </div>
+                
+                <!-- Responsive Breakpoints Info -->
+                <div class="settings-field">
+                    <label class="settings-label">Current Screen Info</label>
+                    <div style="font-size: 12px; color: var(--text-secondary); padding: 8px; background: var(--bg-ticker); border-radius: 6px;">
+                        <div id="screenInfo">Screen: <span id="screenWidth">-</span> x <span id="screenHeight">-</span></div>
+                        <div>Layout: <span id="currentLayout">-</span></div>
+                        <div>Connection: <span id="connectionInfo">-</span></div>
+                    </div>
                 </div>
             </div>
             
@@ -1179,7 +2358,87 @@
                     <div class="test-details" id="testDetails"></div>
                 </div>
             </div>
-            
+
+            <!-- USB Power Settings Tab -->
+            <div class="settings-tab-content" id="usbTab" style="display: none;">
+                <div class="settings-title">USB Power Control</div>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                    Control USB power output for charging external devices like iPhones.
+                    Changes require a system reboot to take effect.
+                </p>
+
+                <div class="settings-field">
+                    <label class="settings-label">
+                        <input type="checkbox" id="usbPowerEnabled" style="margin-right: 8px;">
+                        Enable High-Current USB Power (1.2A)
+                    </label>
+                    <small style="color: var(--text-muted); font-size: 11px; display: block; margin-top: 5px;">
+                        Allows charging of power-hungry devices like iPhones and tablets
+                    </small>
+                </div>
+
+                <div class="usb-status-info" id="usbStatusInfo" style="margin-top: 15px;">
+                    <!-- USB status will be loaded here -->
+                </div>
+
+                <div class="settings-field" style="margin-top: 20px;">
+                    <button class="settings-btn accent" onclick="testUsbPower()" id="testUsbBtn">
+                        Test USB Power
+                    </button>
+                    <small style="color: var(--text-muted); font-size: 11px; display: block; margin-top: 5px;">
+                        Apply settings and reboot system (will disconnect for ~30 seconds)
+                    </small>
+                </div>
+            </div>
+
+            <!-- Throttling Settings Tab -->
+            <div class="settings-tab-content" id="throttlingTab" style="display: none;">
+                <div class="settings-title">System Power Management</div>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                    Control CPU performance and power consumption. Changes take effect immediately.
+                </p>
+
+                <div class="throttling-current-status" id="throttlingCurrentStatus">
+                    <!-- Current status will be loaded here -->
+                </div>
+
+                <div class="settings-field">
+                    <label class="settings-label">Power Level</label>
+                    <div class="power-level-controls">
+                        <div class="power-level-option">
+                            <input type="radio" name="powerLevel" value="1" id="powerLevel1">
+                            <label for="powerLevel1" class="power-level-label">
+                                <div class="power-level-title">Level 1 - Power Save</div>
+                                <div class="power-level-desc">Maximum battery life, reduced performance</div>
+                            </label>
+                        </div>
+                        <div class="power-level-option">
+                            <input type="radio" name="powerLevel" value="2" id="powerLevel2">
+                            <label for="powerLevel2" class="power-level-label">
+                                <div class="power-level-title">Level 2 - Balanced</div>
+                                <div class="power-level-desc">Automatic scaling based on system load</div>
+                            </label>
+                        </div>
+                        <div class="power-level-option">
+                            <input type="radio" name="powerLevel" value="3" id="powerLevel3">
+                            <label for="powerLevel3" class="power-level-label">
+                                <div class="power-level-title">Level 3 - Performance</div>
+                                <div class="power-level-desc">Maximum performance, higher power consumption</div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-field" style="margin-top: 20px;">
+                    <button class="settings-btn accent" onclick="applyThrottlingLevel()" id="applyThrottlingBtn">
+                        Apply Power Level
+                    </button>
+                    <small style="color: var(--text-muted); font-size: 11px; display: block; margin-top: 5px;">
+                        Changes take effect immediately without reboot
+                    </small>
+                </div>
+            </div>
+
             <div class="settings-buttons">
                 <button class="settings-btn secondary" onclick="closeSettings()">Cancel</button>
                 <button class="settings-btn primary" onclick="saveSettings()">Save</button>
@@ -1242,7 +2501,24 @@
             <div class="gauge-unit">%</div>
         </div>
     </div>
-    
+
+    <!-- Power Reserve Indicator -->
+    <div class="power-reserve-banner" id="powerReserveBanner">
+        <div class="power-reserve-content">
+            <div class="power-reserve-main">
+                <div class="power-reserve-icon">⚡</div>
+                <div class="power-reserve-info">
+                    <div class="power-reserve-title">Power Reserve</div>
+                    <div class="power-reserve-time" id="powerReserveTime">-- hours remaining</div>
+                </div>
+            </div>
+            <div class="power-reserve-details">
+                <span class="power-reserve-battery" id="powerReserveBattery">--% • --V</span>
+                <span class="power-reserve-status" id="powerReserveStatus">External Power</span>
+            </div>
+        </div>
+    </div>
+
     <div class="metrics-grid">
         <div class="metric-card">
             <div class="metric-value" id="cpuValue">--</div>
@@ -1294,6 +2570,28 @@
         </div>
     </div>
     
+    <!-- Critical System Health Indicators -->
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-value" id="diskValue">--</div>
+            <div class="metric-unit" id="diskUnit">%</div>
+            <div class="metric-label">Disk Usage</div>
+            <div class="metric-trend" id="diskTrend"></div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value" id="swapValue">--</div>
+            <div class="metric-unit" id="swapUnit">%</div>
+            <div class="metric-label">Swap Usage</div>
+            <div class="metric-trend" id="swapTrend"></div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value" id="processesValue">--</div>
+            <div class="metric-unit" id="processesUnit"></div>
+            <div class="metric-label">Processes</div>
+            <div class="metric-trend" id="processesTrend"></div>
+        </div>
+    </div>
+    
     <!-- X1200-specific indicators (hidden when hardware not present) -->
     <div class="metrics-grid" id="x1200Metrics" style="display: none;">
         <div class="metric-card">
@@ -1321,7 +2619,34 @@
             <div class="metric-trend" id="chargingCurrentTrend"></div>
         </div>
     </div>
-    
+
+    <div class="metrics-grid" id="x1200EnhancedMetrics" style="display: none;">
+        <div class="metric-card">
+            <div class="metric-value" id="enhancedPowerSourceValue">--</div>
+            <div class="metric-unit" id="enhancedPowerSourceUnit"></div>
+            <div class="metric-label">⚡ Enhanced Power Source</div>
+            <div class="metric-trend" id="enhancedPowerSourceTrend"></div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value" id="enhancedEstimatedCurrentValue">--</div>
+            <div class="metric-unit" id="enhancedEstimatedCurrentUnit">mA</div>
+            <div class="metric-label">⚡ Estimated Battery Current</div>
+            <div class="metric-trend" id="enhancedEstimatedCurrentTrend"></div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value" id="enhancedExternalPowerValue">--</div>
+            <div class="metric-unit" id="enhancedExternalPowerUnit"></div>
+            <div class="metric-label">🔌 External Power Status</div>
+            <div class="metric-trend" id="enhancedExternalPowerTrend"></div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value" id="enhancedEventsValue">--</div>
+            <div class="metric-unit" id="enhancedEventsUnit"></div>
+            <div class="metric-label">⚠ Recent Power Events</div>
+            <div class="metric-trend" id="enhancedEventsTrend"></div>
+        </div>
+    </div>
+
     <!-- X1200 Hardware Information Banner -->
     <div id="x1200InfoBanner" class="x1200-info-banner" style="display: block;">
         <div class="info-content">
@@ -1356,7 +2681,7 @@
             <!-- Top CPU Processes -->
             <div class="chart-card">
                 <div class="chart-title">▲ High CPU Processes</div>
-                <div id="topCpuProcesses" style="font-family: monospace; font-size: 0.9em; max-height: 200px; overflow-y: auto;"></div>
+                <div id="topCpuProcesses" style="font-family: 'JetBrains Mono', 'Roboto', monospace; font-size: 0.9em; max-height: 200px; overflow-y: auto;"></div>
             </div>
             
             <!-- Recent System Errors -->
@@ -1429,6 +2754,14 @@
         let previousValues = {};
         let criticalData = null;
         
+        // Connectivity monitoring
+        let connectivityStatus = {
+            isOnline: false,
+            lastCheck: null,
+            responseTime: null,
+            checkInterval: null
+        };
+        
         // Smart unit formatting
         function formatValue(value, type) {
             if (value === null || value === undefined) return '--';
@@ -1451,8 +2784,203 @@
             }
         }
         
+        // Internet Connectivity Functions
+        async function checkInternetConnectivity() {
+            const startTime = Date.now();
+            
+            // Update power indicator to show checking state
+            const internetIcon = document.getElementById('internetIcon');
+            const internetStatus = document.getElementById('internetStatus');
+            const internetLatency = document.getElementById('internetLatency');
+            
+            if (internetIcon && internetStatus) {
+                internetIcon.style.color = '#f59e0b';
+                internetStatus.textContent = 'Checking...';
+                internetStatus.style.color = '#f59e0b';
+                internetLatency.textContent = '--';
+            }
+            
+            try {
+                // Try multiple endpoints for better reliability
+                const endpoints = [
+                    'https://www.google.com/favicon.ico',
+                    'https://httpbin.org/status/200',
+                    'https://www.cloudflare.com/cdn-cgi/trace'
+                ];
+                
+                // Race condition - use the first successful response
+                const promises = endpoints.map(url => 
+                    fetch(url, { 
+                        method: 'HEAD', 
+                        mode: 'no-cors',
+                        cache: 'no-cache',
+                        signal: AbortSignal.timeout(5000) 
+                    })
+                );
+                
+                await Promise.any(promises);
+                
+                // Calculate response time
+                const responseTime = Date.now() - startTime;
+                
+                // Update status to online
+                connectivityStatus.isOnline = true;
+                connectivityStatus.lastCheck = new Date();
+                connectivityStatus.responseTime = responseTime;
+                
+                // Update power indicator group
+                const internetIcon = document.getElementById('internetIcon');
+                const internetStatus = document.getElementById('internetStatus');
+                const internetLatency = document.getElementById('internetLatency');
+                
+                if (internetIcon && internetStatus) {
+                    internetIcon.style.color = '#10b981';
+                    internetStatus.textContent = 'Connected';
+                    internetStatus.style.color = '#10b981';
+                    internetLatency.textContent = `${responseTime}ms`;
+                }
+                
+                // Force update ticker to show new connectivity status
+                if (window.lastPowerData) {
+                    updateTicker(window.lastPowerData);
+                }
+                
+            } catch (error) {
+                // All endpoints failed - offline
+                connectivityStatus.isOnline = false;
+                connectivityStatus.lastCheck = new Date();
+                connectivityStatus.responseTime = null;
+                
+                // Update power indicator group
+                const internetIcon = document.getElementById('internetIcon');
+                const internetStatus = document.getElementById('internetStatus');
+                const internetLatency = document.getElementById('internetLatency');
+                
+                if (internetIcon && internetStatus) {
+                    internetIcon.style.color = '#ef4444';
+                    internetStatus.textContent = 'Disconnected';
+                    internetStatus.style.color = '#ef4444';
+                    internetLatency.textContent = 'No connection';
+                }
+                
+                // Force update ticker to show new connectivity status
+                if (window.lastPowerData) {
+                    updateTicker(window.lastPowerData);
+                }
+                
+                console.warn('Internet connectivity check failed:', error);
+            }
+        }
+        
+        // Start connectivity monitoring
+        function startConnectivityMonitoring() {
+            // Initial check
+            checkInternetConnectivity();
+            
+            // Check every 30 seconds
+            connectivityStatus.checkInterval = setInterval(checkInternetConnectivity, 30000);
+        }
+        
+        // Stop connectivity monitoring
+        function stopConnectivityMonitoring() {
+            if (connectivityStatus.checkInterval) {
+                clearInterval(connectivityStatus.checkInterval);
+                connectivityStatus.checkInterval = null;
+            }
+        }
+        
+        // Display Settings Functions
+        function updateScreenInfo() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            const layout = width <= 400 ? 'Single Column' : 
+                          width <= 768 ? 'Mobile Grid' : 'Desktop Grid';
+            
+            document.getElementById('screenWidth').textContent = width;
+            document.getElementById('screenHeight').textContent = height;
+            document.getElementById('currentLayout').textContent = layout;
+            document.getElementById('connectionInfo').textContent = 
+                connectivityStatus.isOnline ? 'Connected' : 'Offline';
+        }
+        
+        // Apply display settings
+        function applyDisplaySettings() {
+            const mobileLayout = document.getElementById('mobileLayout')?.value || 'auto';
+            const gaugeSize = document.getElementById('gaugeSize')?.value || 'medium';
+            const connectivityInterval = parseInt(document.getElementById('connectivityInterval')?.value || '30') * 1000;
+            const refreshRate = parseInt(document.getElementById('refreshRate')?.value || '5') * 1000;
+            
+            // Apply mobile layout setting
+            const containers = document.querySelectorAll('.gauges-container, .network-gauges-container');
+            containers.forEach(container => {
+                container.classList.remove('force-single', 'force-grid');
+                if (mobileLayout === 'single') {
+                    container.classList.add('force-single');
+                } else if (mobileLayout === 'grid') {
+                    container.classList.add('force-grid');
+                }
+            });
+            
+            // Apply gauge size setting
+            document.body.classList.remove('gauge-small', 'gauge-medium', 'gauge-large');
+            document.body.classList.add('gauge-' + gaugeSize);
+            
+            // Update connectivity monitoring interval
+            if (connectivityStatus.checkInterval) {
+                clearInterval(connectivityStatus.checkInterval);
+                connectivityStatus.checkInterval = setInterval(checkInternetConnectivity, connectivityInterval);
+            }
+            
+            // Save settings to localStorage
+            localStorage.setItem('displaySettings', JSON.stringify({
+                mobileLayout, gaugeSize, connectivityInterval: connectivityInterval/1000, refreshRate: refreshRate/1000
+            }));
+        }
+        
+        // Load display settings
+        function loadDisplaySettings() {
+            try {
+                const saved = localStorage.getItem('displaySettings');
+                if (saved) {
+                    const settings = JSON.parse(saved);
+                    if (document.getElementById('mobileLayout')) {
+                        document.getElementById('mobileLayout').value = settings.mobileLayout || 'auto';
+                    }
+                    if (document.getElementById('gaugeSize')) {
+                        document.getElementById('gaugeSize').value = settings.gaugeSize || 'medium';
+                    }
+                    if (document.getElementById('connectivityInterval')) {
+                        document.getElementById('connectivityInterval').value = settings.connectivityInterval || 30;
+                    }
+                    if (document.getElementById('refreshRate')) {
+                        document.getElementById('refreshRate').value = settings.refreshRate || 5;
+                    }
+                    applyDisplaySettings();
+                }
+            } catch (error) {
+                console.warn('Error loading display settings:', error);
+            }
+        }
+        
         // Update ticker tape
         function updateTicker(data) {
+            // Trigger refresh indicators
+            const leftIndicator = document.getElementById('tickerRefreshLeft');
+            const rightIndicator = document.getElementById('tickerRefreshRight');
+            
+            // Remove existing animation class
+            leftIndicator.classList.remove('blink');
+            rightIndicator.classList.remove('blink');
+            
+            // Force reflow to restart animation
+            void leftIndicator.offsetWidth;
+            void rightIndicator.offsetWidth;
+            
+            // Add animation class
+            leftIndicator.classList.add('blink');
+            rightIndicator.classList.add('blink');
+            
+            // Update values
             document.getElementById('tickerCpu').textContent = formatValue(data.cpu_percent, 'percentage');
             document.getElementById('tickerTemp').textContent = formatValue(data.cpu_temp, 'temperature');
             document.getElementById('tickerMemory').textContent = formatValue(data.memory_percent, 'percentage');
@@ -1467,8 +2995,35 @@
                 const batteryPct = data.x1200_data.battery_percentage;
                 const displayPct = batteryPct ? Math.min(100, batteryPct).toFixed(0) : '--';
                 document.getElementById('tickerBattery').textContent = displayPct;
-                document.getElementById('tickerStatus').textContent = data.x1200_data.is_charging ? 'CHARGING' : 
+                // Include internet connectivity in status
+                const powerStatus = data.x1200_data.is_charging ? 'CHARGING' : 
                     (data.x1200_data.has_external_power ? 'POWERED' : 'BATTERY');
+                const netStatus = connectivityStatus.isOnline ? 'NET' : 'NO NET';
+                document.getElementById('tickerStatus').textContent = `${powerStatus} / ${netStatus}`;
+            } else {
+                // No X1200 data, just show internet status
+                const netStatus = connectivityStatus.isOnline ? 'ONLINE' : 'OFFLINE';
+                document.getElementById('tickerStatus').textContent = netStatus;
+            }
+            
+            // Update uptime if available
+            if (data.system_stats && data.system_stats.uptime_hours) {
+                const uptimeHours = data.system_stats.uptime_hours;
+                const days = Math.floor(uptimeHours / 24);
+                const hours = Math.floor(uptimeHours % 24);
+                const minutes = Math.floor((uptimeHours * 60) % 60);
+                
+                let uptimeStr = '';
+                if (days > 0) {
+                    uptimeStr = `${days}d ${hours}h`;
+                } else if (hours > 0) {
+                    uptimeStr = `${hours}h ${minutes}m`;
+                } else {
+                    uptimeStr = `${minutes}m`;
+                }
+                document.getElementById('tickerUptime').textContent = uptimeStr;
+            } else {
+                document.getElementById('tickerUptime').textContent = '--';
             }
         }
         
@@ -1665,53 +3220,287 @@
         function toggleSettings() {
             const modal = document.getElementById('settingsModal');
             modal.classList.add('active');
-            
-            // Load existing settings
-            const savedKey = localStorage.getItem('pushbulletKey');
-            const savedThreshold = localStorage.getItem('criticalThreshold') || '85';
-            
-            if (savedKey) document.getElementById('pushbulletKey').value = savedKey;
-            document.getElementById('criticalThreshold').value = savedThreshold;
+
+            // Load existing alert settings
+            loadAlertSettings();
         }
-        
+
         function closeSettings() {
             document.getElementById('settingsModal').classList.remove('active');
         }
-        
-        function saveSettings() {
-            const key = document.getElementById('pushbulletKey').value;
-            const threshold = document.getElementById('criticalThreshold').value;
-            
-            localStorage.setItem('pushbulletKey', key);
-            localStorage.setItem('criticalThreshold', threshold);
-            
+
+        async function saveSettings() {
+            // Save alert settings if on alerts tab
+            if (document.getElementById('alertsTab').style.display !== 'none') {
+                await saveAlertSettings();
+            }
+
+            // Save display settings if on display tab
+            if (document.getElementById('displayTab').style.display !== 'none') {
+                applyDisplaySettings();
+            }
+
             // Save bypass server settings if on bypass tab
             if (document.getElementById('bypassTab').style.display !== 'none') {
                 saveBypassSettings();
             }
-            
+
             closeSettings();
-            
-            if (key) {
-                console.log('Pushbullet alerts enabled');
+        }
+
+        // Alert Settings Functions
+        async function loadAlertSettings() {
+            try {
+                const response = await fetch('/api/alert-config', { credentials: 'include' });
+                const config = await response.json();
+
+                // Load Pushover settings
+                document.getElementById('pushoverEnabled').checked = config.pushover?.enabled || false;
+                document.getElementById('pushoverApiToken').value = config.pushover?.api_token || '';
+                document.getElementById('pushoverUserKey').value = config.pushover?.user_key || '';
+
+                // Load threshold settings
+                const thresholds = config.thresholds || {};
+
+                if (thresholds.battery_low) {
+                    document.getElementById('batteryLowEnabled').checked = thresholds.battery_low.enabled;
+                    document.getElementById('batteryLowThreshold').value = thresholds.battery_low.value;
+                    document.getElementById('batteryLowValue').textContent = thresholds.battery_low.value + '%';
+                }
+
+                if (thresholds.battery_critical) {
+                    document.getElementById('batteryCriticalEnabled').checked = thresholds.battery_critical.enabled;
+                    document.getElementById('batteryCriticalThreshold').value = thresholds.battery_critical.value;
+                    document.getElementById('batteryCriticalValue').textContent = thresholds.battery_critical.value + '%';
+                }
+
+                if (thresholds.cpu_temp_high) {
+                    document.getElementById('cpuTempEnabled').checked = thresholds.cpu_temp_high.enabled;
+                    document.getElementById('cpuTempThreshold').value = thresholds.cpu_temp_high.value;
+                    document.getElementById('cpuTempValue').textContent = thresholds.cpu_temp_high.value + '°C';
+                }
+
+                if (thresholds.cpu_usage_high) {
+                    document.getElementById('cpuUsageEnabled').checked = thresholds.cpu_usage_high.enabled;
+                    document.getElementById('cpuUsageThreshold').value = thresholds.cpu_usage_high.value;
+                    document.getElementById('cpuUsageValue').textContent = thresholds.cpu_usage_high.value + '%';
+                }
+
+                if (thresholds.memory_high) {
+                    document.getElementById('memoryEnabled').checked = thresholds.memory_high.enabled;
+                    document.getElementById('memoryThreshold').value = thresholds.memory_high.value;
+                    document.getElementById('memoryValue').textContent = thresholds.memory_high.value + '%';
+                }
+
+                if (thresholds.power_loss) {
+                    document.getElementById('powerLossEnabled').checked = thresholds.power_loss.enabled;
+                }
+
+                // Set up slider event listeners
+                setupThresholdSliders();
+
+            } catch (error) {
+                console.error('Error loading alert settings:', error);
             }
         }
-        
+
+        function setupThresholdSliders() {
+            const sliders = [
+                { slider: 'batteryLowThreshold', display: 'batteryLowValue', suffix: '%' },
+                { slider: 'batteryCriticalThreshold', display: 'batteryCriticalValue', suffix: '%' },
+                { slider: 'cpuTempThreshold', display: 'cpuTempValue', suffix: '°C' },
+                { slider: 'cpuUsageThreshold', display: 'cpuUsageValue', suffix: '%' },
+                { slider: 'memoryThreshold', display: 'memoryValue', suffix: '%' }
+            ];
+
+            sliders.forEach(({ slider, display, suffix }) => {
+                const sliderEl = document.getElementById(slider);
+                const displayEl = document.getElementById(display);
+
+                sliderEl.addEventListener('input', function() {
+                    displayEl.textContent = this.value + suffix;
+                });
+            });
+        }
+
+        async function saveAlertSettings() {
+            try {
+                // Save Pushover configuration
+                const pushoverData = {
+                    api_token: document.getElementById('pushoverApiToken').value,
+                    user_key: document.getElementById('pushoverUserKey').value,
+                    enabled: document.getElementById('pushoverEnabled').checked
+                };
+
+                await fetch('/api/alert-config/pushover', {
+                    credentials: 'include',
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(pushoverData)
+                });
+
+                // Save threshold configuration
+                const thresholdData = {
+                    battery_low: {
+                        enabled: document.getElementById('batteryLowEnabled').checked,
+                        value: parseInt(document.getElementById('batteryLowThreshold').value)
+                    },
+                    battery_critical: {
+                        enabled: document.getElementById('batteryCriticalEnabled').checked,
+                        value: parseInt(document.getElementById('batteryCriticalThreshold').value)
+                    },
+                    cpu_temp_high: {
+                        enabled: document.getElementById('cpuTempEnabled').checked,
+                        value: parseInt(document.getElementById('cpuTempThreshold').value)
+                    },
+                    cpu_usage_high: {
+                        enabled: document.getElementById('cpuUsageEnabled').checked,
+                        value: parseInt(document.getElementById('cpuUsageThreshold').value)
+                    },
+                    memory_high: {
+                        enabled: document.getElementById('memoryEnabled').checked,
+                        value: parseInt(document.getElementById('memoryThreshold').value)
+                    },
+                    power_loss: {
+                        enabled: document.getElementById('powerLossEnabled').checked
+                    }
+                };
+
+                await fetch('/api/alert-config/thresholds', {
+                    credentials: 'include',
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(thresholdData)
+                });
+
+                alert('Alert settings saved successfully!');
+
+            } catch (error) {
+                console.error('Error saving alert settings:', error);
+                alert('Error saving alert settings: ' + error.message);
+            }
+        }
+
+        async function testPushoverAlert() {
+            try {
+                const response = await fetch('/api/alert-test', {
+                    credentials: 'include',
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: 'Test Alert',
+                        message: 'This is a test notification from your X1200 Power Monitor'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Test alert sent successfully! Check your Pushover app.');
+                } else {
+                    alert('Failed to send test alert: ' + (result.error || result.message));
+                }
+
+            } catch (error) {
+                console.error('Error sending test alert:', error);
+                alert('Error sending test alert: ' + error.message);
+            }
+        }
+
+        // Password field visibility toggle function
+        function togglePasswordVisibility(fieldId) {
+            const field = document.getElementById(fieldId);
+            const eyeIcon = event.target;
+
+            if (field.type === 'password') {
+                field.type = 'text';
+                eyeIcon.textContent = '🙈'; // closed eye
+                eyeIcon.title = 'Hide password';
+            } else {
+                field.type = 'password';
+                eyeIcon.textContent = '👁️'; // open eye
+                eyeIcon.title = 'Show password';
+            }
+        }
+
+        // Copy to clipboard function
+        async function copyToClipboard(fieldId) {
+            const field = document.getElementById(fieldId);
+            const copyIcon = event.target;
+
+            if (!field.value) {
+                // Show temporary feedback for empty field
+                const originalText = copyIcon.textContent;
+                copyIcon.textContent = '❌';
+                copyIcon.style.color = 'var(--danger-color)';
+                setTimeout(() => {
+                    copyIcon.textContent = originalText;
+                    copyIcon.style.color = '';
+                }, 1000);
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(field.value);
+
+                // Show success feedback
+                const originalText = copyIcon.textContent;
+                copyIcon.textContent = '✅';
+                copyIcon.classList.add('copied');
+
+                setTimeout(() => {
+                    copyIcon.textContent = originalText;
+                    copyIcon.classList.remove('copied');
+                }, 1500);
+
+            } catch (error) {
+                console.error('Failed to copy to clipboard:', error);
+
+                // Fallback: select text for manual copy
+                field.select();
+                field.setSelectionRange(0, 99999); // For mobile devices
+
+                // Show fallback feedback
+                const originalText = copyIcon.textContent;
+                copyIcon.textContent = '📝';
+                copyIcon.style.color = 'var(--warning-color)';
+                setTimeout(() => {
+                    copyIcon.textContent = originalText;
+                    copyIcon.style.color = '';
+                }, 2000);
+            }
+        }
+
         // Bypass Server Management Functions
         function showSettingsTab(tabName) {
             // Hide all tabs
             document.getElementById('alertsTab').style.display = 'none';
+            document.getElementById('displayTab').style.display = 'none';
+            document.getElementById('usbTab').style.display = 'none';
+            document.getElementById('throttlingTab').style.display = 'none';
             document.getElementById('bypassTab').style.display = 'none';
-            
+
             // Remove active class from all tab buttons
             document.querySelectorAll('.settings-tab').forEach(tab => {
                 tab.classList.remove('active');
             });
-            
+
             // Show selected tab and mark button as active
             if (tabName === 'alerts') {
                 document.getElementById('alertsTab').style.display = 'block';
                 document.querySelector('.settings-tab[onclick="showSettingsTab(\'alerts\')"]').classList.add('active');
+            } else if (tabName === 'display') {
+                document.getElementById('displayTab').style.display = 'block';
+                document.querySelector('.settings-tab[onclick="showSettingsTab(\'display\')"]').classList.add('active');
+                updateScreenInfo(); // Update screen info when display tab is shown
+            } else if (tabName === 'usb') {
+                document.getElementById('usbTab').style.display = 'block';
+                document.querySelector('.settings-tab[onclick="showSettingsTab(\'usb\')"]').classList.add('active');
+                loadUsbStatus();
+            } else if (tabName === 'throttling') {
+                document.getElementById('throttlingTab').style.display = 'block';
+                document.querySelector('.settings-tab[onclick="showSettingsTab(\'throttling\')"]').classList.add('active');
+                loadThrottlingStatus();
             } else if (tabName === 'bypass') {
                 document.getElementById('bypassTab').style.display = 'block';
                 document.querySelector('.settings-tab[onclick="showSettingsTab(\'bypass\')"]').classList.add('active');
@@ -1721,7 +3510,7 @@
         
         async function loadBypassServerData() {
             try {
-                const response = await fetch('/api/bypass-servers');
+                const response = await fetch('/api/bypass-servers', { credentials: 'include' });
                 const data = await response.json();
                 
                 // Update system info
@@ -1788,7 +3577,7 @@
         
         async function testAllServers() {
             try {
-                const response = await fetch('/api/bypass-servers/test');
+                const response = await fetch('/api/bypass-servers/test', { credentials: 'include' });
                 const results = await response.json();
                 
                 // Show test results
@@ -1817,7 +3606,7 @@
         
         async function forceRegister() {
             try {
-                const response = await fetch('/api/bypass-servers/force-register');
+                const response = await fetch('/api/bypass-servers/force-register', { credentials: 'include' });
                 const result = await response.json();
                 
                 if (result.success) {
@@ -1839,7 +3628,7 @@
             const url = prompt('Enter bypass server URL:', 'http://10.0.0.1:8080');
             if (url && url.trim()) {
                 // Get current servers and add new one
-                fetch('/api/bypass-servers')
+                fetch('/api/bypass-servers', { credentials: 'include' })
                     .then(response => response.json())
                     .then(data => {
                         const servers = data.servers || [];
@@ -1860,7 +3649,7 @@
         }
         
         function editServer(index) {
-            fetch('/api/bypass-servers')
+            fetch('/api/bypass-servers', { credentials: 'include' })
                 .then(response => response.json())
                 .then(data => {
                     const servers = data.servers || [];
@@ -1875,7 +3664,7 @@
         }
         
         function toggleServer(index) {
-            fetch('/api/bypass-servers')
+            fetch('/api/bypass-servers', { credentials: 'include' })
                 .then(response => response.json())
                 .then(data => {
                     const servers = data.servers || [];
@@ -1886,7 +3675,7 @@
         
         function removeServer(index) {
             if (confirm('Are you sure you want to remove this server?')) {
-                fetch('/api/bypass-servers')
+                fetch('/api/bypass-servers', { credentials: 'include' })
                     .then(response => response.json())
                     .then(data => {
                         const servers = data.servers || [];
@@ -1913,6 +3702,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
+                    credentials: 'include',
                     body: JSON.stringify(payload)
                 });
                 
@@ -1938,6 +3728,7 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
+                credentials: 'include',
                 body: JSON.stringify({
                     health_heartbeat_interval: heartbeatInterval,
                     notification_timeout: notificationTimeout
@@ -1945,28 +3736,7 @@
             });
         }
         
-        // Send Pushbullet notification
-        async function sendPushbulletAlert(title, message) {
-            const apiKey = localStorage.getItem('pushbulletKey');
-            if (!apiKey) return;
-            
-            try {
-                await fetch('https://api.pushbullet.com/v2/pushes', {
-                    method: 'POST',
-                    headers: {
-                        'Access-Token': apiKey,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        type: 'note',
-                        title: `Power Monitor Alert: ${title}`,
-                        body: message
-                    })
-                });
-            } catch (error) {
-                console.error('Failed to send Pushbullet alert:', error);
-            }
-        }
+        // Legacy function - alerts now handled by server-side Pushover integration
         
         // Update alert ticker
         function updateAlertTicker(alerts) {
@@ -2203,26 +3973,124 @@
             });
         }
         
-        // Fetch data from server
-        async function fetchData() {
+        // SSE connection for real-time data
+        let eventSource = null;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+
+        function initializeSSE() {
+            if (eventSource) {
+                eventSource.close();
+            }
+
             try {
-                const [powerResponse, criticalResponse] = await Promise.all([
-                    fetch('/api/power-data'),
-                    fetch('/api/critical-indicators')
+                eventSource = new EventSource('/api/stream');
+
+                eventSource.onopen = function(event) {
+                    console.log('SSE connection opened');
+                    reconnectAttempts = 0;
+                    updateStatusTicker('Connected via SSE', true);
+                };
+
+                eventSource.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        updateDashboard(data);
+
+                        // Fetch additional data that's not in main stream
+                        fetchAdditionalData();
+                    } catch (error) {
+                        console.error('Error parsing SSE data:', error);
+                    }
+                };
+
+                eventSource.onerror = function(event) {
+                    console.error('SSE error:', event);
+                    updateStatusTicker('Connection Error', false);
+
+                    // Attempt to reconnect
+                    if (reconnectAttempts < maxReconnectAttempts) {
+                        reconnectAttempts++;
+                        setTimeout(() => {
+                            console.log(`Reconnecting SSE (attempt ${reconnectAttempts})`);
+                            initializeSSE();
+                        }, 3000 * reconnectAttempts); // Exponential backoff
+                    } else {
+                        console.log('Max reconnection attempts reached, falling back to polling');
+                        fallbackToPolling();
+                    }
+                };
+
+            } catch (error) {
+                console.error('Error initializing SSE:', error);
+                fallbackToPolling();
+            }
+        }
+
+        // Fetch additional data not included in main stream
+        async function fetchAdditionalData() {
+            try {
+                const [criticalResponse, batteryAdvancedResponse] = await Promise.all([
+                    fetch('/api/critical-indicators', { credentials: 'include' }),
+                    fetch('/api/battery-advanced', { credentials: 'include' })
                 ]);
-                
-                if (!powerResponse.ok) throw new Error('Power data fetch failed');
-                
-                const data = await powerResponse.json();
-                updateDashboard(data);
-                
+
                 if (criticalResponse.ok) {
                     criticalData = await criticalResponse.json();
                     updateCriticalIndicators(criticalData);
                 }
-                
-                // Connection status handled in processAlertsWithTicker
-                
+
+                if (batteryAdvancedResponse.ok) {
+                    const batteryData = await batteryAdvancedResponse.json();
+                    updatePowerReserve(batteryData);
+                }
+            } catch (error) {
+                console.error('Error fetching additional data:', error);
+            }
+        }
+
+        // Fallback to polling if SSE fails
+        function fallbackToPolling() {
+            console.log('Falling back to polling mode');
+            updateStatusTicker('Using Polling (SSE Failed)', true);
+
+            // Close SSE if it exists
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+
+            // Start polling every 10 seconds (reduced frequency)
+            setInterval(fetchDataPolling, 10000);
+            fetchDataPolling(); // Initial call
+        }
+
+        // Original fetch function for fallback
+        async function fetchDataPolling() {
+            try {
+                const [powerResponse, criticalResponse, batteryAdvancedResponse] = await Promise.all([
+                    fetch('/api/power-data', { credentials: 'include' }),
+                    fetch('/api/critical-indicators', { credentials: 'include' }),
+                    fetch('/api/battery-advanced', { credentials: 'include' })
+                ]);
+
+                if (!powerResponse.ok) throw new Error('Power data fetch failed');
+
+                const data = await powerResponse.json();
+                updateDashboard(data);
+
+                if (criticalResponse.ok) {
+                    criticalData = await criticalResponse.json();
+                    updateCriticalIndicators(criticalData);
+                }
+
+                if (batteryAdvancedResponse.ok) {
+                    const batteryData = await batteryAdvancedResponse.json();
+                    updatePowerReserve(batteryData);
+                }
+
+                updateStatusTicker('Connected via Polling', true);
+
             } catch (error) {
                 console.error('Error fetching data:', error);
                 updateStatusTicker('System Disconnected', false);
@@ -2298,9 +4166,73 @@
                 charts.process.update('none');
             }
         }
-        
+
+        // Update power reserve indicator
+        function updatePowerReserve(batteryData) {
+            const banner = document.getElementById('powerReserveBanner');
+            const timeElement = document.getElementById('powerReserveTime');
+            const batteryElement = document.getElementById('powerReserveBattery');
+            const statusElement = document.getElementById('powerReserveStatus');
+
+            if (!batteryData || !batteryData.soc) {
+                banner.style.display = 'none';
+                return;
+            }
+
+            banner.style.display = 'block';
+
+            // Format runtime
+            const hours = batteryData.runtime_hours || 0;
+            let timeText;
+            if (hours < 1) {
+                timeText = `${Math.round(hours * 60)} minutes remaining`;
+            } else if (hours < 24) {
+                const h = Math.floor(hours);
+                const m = Math.round((hours - h) * 60);
+                timeText = h > 0 ? `${h}h ${m}m remaining` : `${m} minutes remaining`;
+            } else {
+                const days = Math.floor(hours / 24);
+                const h = Math.floor(hours % 24);
+                timeText = `${days}d ${h}h remaining`;
+            }
+
+            // Update content
+            timeElement.textContent = timeText;
+            batteryElement.textContent = `${batteryData.soc.toFixed(1)}% • ${batteryData.voltage.toFixed(2)}V`;
+            statusElement.textContent = batteryData.health || 'Good';
+
+            // Set banner state based on battery level and runtime
+            banner.classList.remove('critical', 'warning', 'battery-only');
+
+            if (batteryData.soc < 15 || hours < 0.5) {
+                banner.classList.add('critical');
+                banner.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+            } else if (batteryData.soc < 30 || hours < 2) {
+                banner.classList.add('warning');
+                banner.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+            } else if (batteryData.soc < 80) {
+                banner.classList.add('battery-only');
+                banner.style.background = 'linear-gradient(135deg, #8b5cf6, #7c3aed)';
+            } else {
+                banner.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+            }
+
+            // Update icon based on status
+            const icon = banner.querySelector('.power-reserve-icon');
+            if (batteryData.soc < 15) {
+                icon.textContent = '🔋'; // Low battery
+            } else if (batteryData.soc < 50) {
+                icon.textContent = '🔋'; // Medium battery
+            } else {
+                icon.textContent = '⚡'; // Good battery
+            }
+        }
+
         // Update dashboard with new data
         function updateDashboard(data) {
+            // Store last power data for connectivity status updates
+            window.lastPowerData = data;
+            
             // Update ticker first
             updateTicker(data);
             
@@ -2326,8 +4258,17 @@
             updateMetricCard('memoryValue', 'memoryTrend', data.memory_percent, '%');
             updateMetricCard('loadValue', 'loadTrend', data.load_avg, 'avg');
             updateMetricCard('fanValue', 'fanTrend', data.fan_speed, 'RPM');
+            
+            // Update critical system health indicators
+            if (data.system_stats) {
+                updateMetricCard('diskValue', 'diskTrend', data.system_stats.disk_usage_percent, '%');
+                updateMetricCard('swapValue', 'swapTrend', data.system_stats.swap_usage_percent, '%');
+                updateMetricCard('processesValue', 'processesTrend', data.system_stats.processes_count, '');
+            }
+            
             // Handle X1200 data display
             const x1200Metrics = document.getElementById('x1200Metrics');
+            const x1200EnhancedMetrics = document.getElementById('x1200EnhancedMetrics');
             const x1200InfoBanner = document.getElementById('x1200InfoBanner');
             
             if (data.x1200_data) {
@@ -2349,7 +4290,9 @@
                     
                     updateGauge('battery', displayPct, 100, batteryColor, tooltipText, `${Math.round(displayPct)}%`);
                 } else {
-                    updateGauge('battery', 0, 100, '#64748b', 'Battery: No data available', '--');
+                    // Check if battery is detected but no data, or completely missing
+                    const batteryStatus = data.x1200_data.has_battery_installed === false ? 'No Battery' : 'No Data';
+                    updateGauge('battery', 0, 100, '#64748b', `Battery: ${batteryStatus}`, batteryStatus);
                 }
                 
                 const powerWatts = data.x1200_data.power / 1000; // Convert mW to W
@@ -2393,10 +4336,21 @@
                 
                 // Update top power indicators
                 updatePowerIndicators(data.x1200_data);
+
+                // Update enhanced metrics panel if data is available
+                if (data.x1200_enhanced) {
+                    updateEnhancedMetrics(data.x1200_enhanced);
+                } else if (x1200EnhancedMetrics) {
+                    x1200EnhancedMetrics.style.display = 'none';
+                }
             } else {
                 // Hide X1200 metrics, show info banner
                 x1200Metrics.style.display = 'none';
                 x1200InfoBanner.style.display = 'block';
+
+                if (x1200EnhancedMetrics) {
+                    x1200EnhancedMetrics.style.display = 'none';
+                }
                 
                 // Show system power estimate instead
                 const estimatedPower = estimatePowerDraw(data.cpu_percent, data.cpu_temp, data.memory_percent);
@@ -2405,7 +4359,7 @@
                 // Update power indicators with unavailable status
                 updatePowerIndicators(null);
             }
-            
+
             // Add to history
             dataHistory.push(data);
             if (dataHistory.length > maxDataPoints) {
@@ -2466,7 +4420,95 @@
                 chargingIndicator.className = 'power-indicator';
             }
         }
-        
+
+        function updateEnhancedMetrics(enhancedData) {
+            const panel = document.getElementById('x1200EnhancedMetrics');
+            if (!panel) {
+                return;
+            }
+
+            if (!enhancedData) {
+                panel.style.display = 'none';
+                return;
+            }
+
+            const formatText = (text) => text ? text.replace(/_/g, ' ') : '';
+
+            panel.style.display = 'grid';
+
+            const powerSourceValue = document.getElementById('enhancedPowerSourceValue');
+            const powerSourceTrend = document.getElementById('enhancedPowerSourceTrend');
+            powerSourceValue.textContent = formatText(enhancedData.power_source) || '--';
+            if (powerSourceTrend) {
+                const noteText = formatText(enhancedData.notes);
+                if (noteText) {
+                    powerSourceTrend.textContent = noteText;
+                } else if (enhancedData.timestamp) {
+                    powerSourceTrend.textContent = `Updated ${new Date(enhancedData.timestamp).toLocaleTimeString()}`;
+                } else {
+                    powerSourceTrend.textContent = '';
+                }
+            }
+
+            const currentValueElement = document.getElementById('enhancedEstimatedCurrentValue');
+            const currentUnitElement = document.getElementById('enhancedEstimatedCurrentUnit');
+            const currentTrendElement = document.getElementById('enhancedEstimatedCurrentTrend');
+            if (typeof enhancedData.estimated_current_ma === 'number') {
+                const currentAbs = Math.abs(enhancedData.estimated_current_ma);
+                if (currentAbs >= 1000) {
+                    currentValueElement.textContent = (enhancedData.estimated_current_ma / 1000).toFixed(2);
+                    currentUnitElement.textContent = 'A';
+                } else {
+                    currentValueElement.textContent = enhancedData.estimated_current_ma.toFixed(0);
+                    currentUnitElement.textContent = 'mA';
+                }
+
+                if (currentTrendElement) {
+                    currentTrendElement.textContent = enhancedData.estimated_current_ma < 0 ? 'Discharging' : 'Charging/Idle';
+                }
+            } else {
+                currentValueElement.textContent = '--';
+                currentUnitElement.textContent = 'mA';
+                if (currentTrendElement) {
+                    currentTrendElement.textContent = '';
+                }
+            }
+
+            const externalPowerValue = document.getElementById('enhancedExternalPowerValue');
+            const externalPowerTrend = document.getElementById('enhancedExternalPowerTrend');
+            if (enhancedData.has_external_power === true) {
+                externalPowerValue.textContent = 'Connected';
+            } else if (enhancedData.has_external_power === false) {
+                externalPowerValue.textContent = 'Battery';
+            } else {
+                externalPowerValue.textContent = '--';
+            }
+
+            if (externalPowerTrend) {
+                if (enhancedData.is_charging === true) {
+                    externalPowerTrend.textContent = 'Charging';
+                } else if (enhancedData.is_charging === false) {
+                    externalPowerTrend.textContent = 'Not Charging';
+                } else {
+                    externalPowerTrend.textContent = '';
+                }
+            }
+
+            const eventsValue = document.getElementById('enhancedEventsValue');
+            const eventsTrend = document.getElementById('enhancedEventsTrend');
+            if (enhancedData.events && enhancedData.events.length > 0) {
+                eventsValue.textContent = enhancedData.events.map(formatText).join(' • ');
+            } else {
+                eventsValue.textContent = 'None';
+            }
+
+            if (eventsTrend) {
+                const tempPart = typeof enhancedData.cpu_temp === 'number' ? `${enhancedData.cpu_temp.toFixed(1)}°C` : '--';
+                const loadPart = typeof enhancedData.load_avg === 'number' ? enhancedData.load_avg.toFixed(2) : '--';
+                eventsTrend.textContent = `CPU ${tempPart} • Load ${loadPart}`;
+            }
+        }
+
         // Update metric cards with trend indicators
         function updateMetricCard(valueId, trendId, value, unit) {
             const valueElement = document.getElementById(valueId);
@@ -2666,31 +4708,54 @@
                     alerts.push(`Power High: ${formatValue(powerWatts, 'power')}W`);
                 }
                 
-                // Update status ticker with connection status (green if OK)
-                updateStatusTicker('X1200 Connected', true);
+                // Status is now handled in updateTicker function
             } else {
                 // X1200 not detected - send to alert ticker
                 alerts.push('X1200 Hardware Not Detected');
-                updateStatusTicker('X1200 Disconnected', false);
             }
             
             // Update alert ticker
             updateAlertTicker(alerts);
             
-            // Send Pushbullet alerts for critical issues
-            if (criticalAlerts.length > 0) {
-                const message = criticalAlerts.join('\n');
-                sendPushbulletAlert('Critical System Alert', message);
-            }
+            // Critical alerts now handled server-side via Pushover integration in /api/alerts endpoint
         }
         
-        // Update status ticker for connection status
-        function updateStatusTicker(message, isGood) {
-            const statusTickerItem = document.querySelector('#tickerStatus');
-            if (statusTickerItem) {
-                statusTickerItem.textContent = message;
-                statusTickerItem.style.color = isGood ? '#10b981' : '#ef4444';
+        // Synchronized ticker system
+        let tickerInterval = null;
+        
+        function startSynchronizedTicker() {
+            // Get the ticker tape element
+            const tickerTape = document.getElementById('tickerTape');
+            
+            // Clone ticker content for seamless scrolling
+            const tickerContent = tickerTape.innerHTML;
+            tickerTape.innerHTML = tickerContent + tickerContent;
+            
+            // Calculate timing based on animation duration
+            const animationDuration = 10000; // 10 seconds as set in CSS
+            
+            // Start the synchronized refresh cycle
+            function scheduleNextUpdate() {
+                // Clear any existing interval
+                if (tickerInterval) {
+                    clearTimeout(tickerInterval);
+                }
+                
+                // Schedule next update to coincide with animation restart
+                tickerInterval = setTimeout(() => {
+                    // Data updates now handled by SSE
+                    scheduleNextUpdate();
+                }, animationDuration);
             }
+            
+            // Start the cycle
+            scheduleNextUpdate();
+            
+            // Listen for animation iteration to sync perfectly
+            tickerTape.addEventListener('animationiteration', () => {
+                // Animation has completed one cycle
+                console.log('Ticker animation cycle complete');
+            });
         }
         
         // Run diagnostics function
@@ -2727,14 +4792,491 @@ Expected I2C Address: 0x36 (MAX17040G+ fuel gauge)
             
             alert(diagnosticInfo);
         }
-        
+
+        // Rothko Paintings System
+        // Generate heat-mapped Rothko painting based on real-time system metrics
+        async function generateHeatMappedRothko() {
+            // Fetch current system data
+            const response = await fetch('/api/power-data', { credentials: 'include' });
+            const data = await response.json();
+
+            const canvas = document.createElement('canvas');
+            canvas.width = 800;
+            canvas.height = 1740; // iPhone 13 Pro Max ratio
+            const ctx = canvas.getContext('2d');
+
+            // Calculate health metrics (0-100, lower is better for most)
+            const metrics = {
+                cpu_percent: data.cpu_percent || 0,
+                cpu_temp: data.cpu_temp || 50,
+                memory_percent: data.memory_percent || 0,
+                battery_percent: data.x1200_data?.battery_percentage || 100,
+                voltage: data.x1200_data?.batt_voltage || 4.0,
+                disk_usage: data.system_stats?.disk_usage_percent || 0,
+                load_avg: (data.load_avg || 0) * 25 // normalize to percentage
+            };
+
+            // Health scoring (0-100, higher is better)
+            const health = {
+                cpu: Math.max(0, 100 - metrics.cpu_percent), // 100% CPU = 0 health
+                thermal: Math.max(0, 100 - Math.max(0, metrics.cpu_temp - 40) * 2), // >70°C gets critical
+                memory: Math.max(0, 100 - metrics.memory_percent),
+                battery: metrics.battery_percent,
+                voltage: Math.min(100, Math.max(0, (metrics.voltage - 3.2) / (4.2 - 3.2) * 100)), // 3.2V-4.2V range
+                storage: Math.max(0, 100 - metrics.disk_usage),
+                load: Math.max(0, 100 - metrics.load_avg)
+            };
+
+            // Overall system health (weighted average)
+            const overallHealth = (
+                health.cpu * 0.2 +
+                health.thermal * 0.25 +
+                health.memory * 0.15 +
+                health.battery * 0.15 +
+                health.voltage * 0.15 +
+                health.storage * 0.05 +
+                health.load * 0.05
+            );
+
+            // Generate heat-mapped colors based on health
+            function getHealthColor(healthValue, alpha = 0.8) {
+                // More green nuances when healthy, fewer red nuances when critical
+                if (healthValue > 80) {
+                    // Healthy: Rich greens with multiple nuances
+                    const greenVariations = [
+                        `rgba(34, 139, 34, ${alpha})`,     // Forest Green
+                        `rgba(50, 205, 50, ${alpha * 0.7})`, // Lime Green
+                        `rgba(0, 128, 0, ${alpha})`,       // Green
+                        `rgba(46, 125, 50, ${alpha * 0.6})`, // Dark Green
+                        `rgba(76, 175, 80, ${alpha * 0.5})`  // Material Green
+                    ];
+                    return greenVariations;
+                } else if (healthValue > 60) {
+                    // Warning: Yellow-greens, fewer nuances
+                    return [
+                        `rgba(154, 205, 50, ${alpha})`,   // Yellow Green
+                        `rgba(124, 179, 66, ${alpha * 0.7})`, // Olive Green
+                        `rgba(139, 195, 74, ${alpha * 0.6})`  // Light Green
+                    ];
+                } else if (healthValue > 40) {
+                    // Caution: Oranges, reducing nuances
+                    return [
+                        `rgba(255, 165, 0, ${alpha})`,    // Orange
+                        `rgba(255, 140, 0, ${alpha * 0.7})` // Dark Orange
+                    ];
+                } else {
+                    // Critical: Single red nuance (Rothko's intense singular focus)
+                    return [
+                        `rgba(139, 0, 0, ${alpha})`       // Dark Red
+                    ];
+                }
+            }
+
+            // Determine painting composition based on worst-performing metric
+            const worstMetric = Object.entries(health).reduce((worst, [key, value]) =>
+                value < worst.value ? {key, value} : worst,
+                {key: 'cpu', value: 100}
+            );
+
+            let title, description;
+            const healthColors = getHealthColor(overallHealth);
+
+            if (overallHealth > 80) {
+                title = "System Harmony (Optimal Performance)";
+                description = `Rich green nuances fill the canvas - ${healthColors.length} distinct layers represent the harmony of well-functioning components. CPU at ${metrics.cpu_percent.toFixed(1)}%, temperature ${metrics.cpu_temp.toFixed(1)}°C, battery ${metrics.battery_percent.toFixed(1)}%. This is the color of digital health.`;
+            } else if (overallHealth > 60) {
+                title = "System Caution (Performance Degradation)";
+                description = `Yellow-green tones with ${healthColors.length} nuances suggest caution. The ${worstMetric.key} subsystem shows stress. Overall performance at ${overallHealth.toFixed(1)}% - the colors reflect emerging thermal or computational pressure.`;
+            } else if (overallHealth > 40) {
+                title = "System Warning (Critical Threshold)";
+                description = `Orange dominance with only ${healthColors.length} color layers. The ${worstMetric.key} metric has crossed warning thresholds. System health at ${overallHealth.toFixed(1)}% - Rothko's palette narrows as digital anxiety increases.`;
+            } else {
+                title = "System Crisis (Imminent Failure)";
+                description = `A single dark red suffuses the canvas - ${healthColors.length} nuance only. Critical failure in ${worstMetric.key} detected. System health at ${overallHealth.toFixed(1)}% - the painting achieves Rothko's ultimate reduction: pure emergency.`;
+            }
+
+            // Render heat-mapped Rothko painting
+
+            // 1. Base layer reflecting overall health
+            const baseGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            baseGradient.addColorStop(0, healthColors[0]);
+            baseGradient.addColorStop(0.5, healthColors[0]);
+            baseGradient.addColorStop(1, healthColors[0]);
+            ctx.fillStyle = baseGradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Helper function for rounded rectangles with granular texture
+            function drawRothkoField(x, y, width, height, gradient, cornerRadius = 25, textureIntensity = 0.03) {
+                // Create rounded rectangle path
+                ctx.beginPath();
+                ctx.moveTo(x + cornerRadius, y);
+                ctx.lineTo(x + width - cornerRadius, y);
+                ctx.quadraticCurveTo(x + width, y, x + width, y + cornerRadius);
+                ctx.lineTo(x + width, y + height - cornerRadius);
+                ctx.quadraticCurveTo(x + width, y + height, x + width - cornerRadius, y + height);
+                ctx.lineTo(x + cornerRadius, y + height);
+                ctx.quadraticCurveTo(x, y + height, x, y + height - cornerRadius);
+                ctx.lineTo(x, y + cornerRadius);
+                ctx.quadraticCurveTo(x, y, x + cornerRadius, y);
+                ctx.closePath();
+
+                // Fill with gradient
+                ctx.fillStyle = gradient;
+                ctx.fill();
+
+                // Add granular texture for materiality
+                const imageData = ctx.getImageData(x, y, width, height);
+                const data = imageData.data;
+
+                for(let i = 0; i < data.length; i += 4) {
+                    if(Math.random() < textureIntensity) {
+                        const noise = (Math.random() - 0.5) * 40; // ±20 color variation
+                        data[i] = Math.max(0, Math.min(255, data[i] + noise));     // R
+                        data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise)); // G
+                        data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise)); // B
+                    }
+                }
+
+                ctx.putImageData(imageData, x, y);
+            }
+
+            // 2. Top field: CPU and thermal health
+            const topHealth = (health.cpu + health.thermal) / 2;
+            const topColors = getHealthColor(topHealth, 0.9);
+            const topHeight = canvas.height * 0.3;
+
+            for(let i = 0; i < topColors.length && i < 4; i++) {
+                ctx.globalCompositeOperation = i === 0 ? 'normal' : 'multiply';
+                const topGrad = ctx.createLinearGradient(0, 0, 0, topHeight + 40);
+                topGrad.addColorStop(0, topColors[i]);
+                topGrad.addColorStop(0.8, topColors[i].replace(/[\d\.]+\)$/, `${0.4 - i * 0.1})`));
+                topGrad.addColorStop(1, topColors[i].replace(/[\d\.]+\)$/, '0)'));
+
+                const fieldX = i * 3 + 10;
+                const fieldY = i * 4 + 8;
+                const fieldWidth = canvas.width - (i * 6) - 20;
+                const fieldHeight = topHeight + 20;
+                const cornerRadius = 30 - i * 5; // Varying corner radius
+                const textureLevel = 0.02 + (topColors.length - i) * 0.01; // More texture for more layers
+
+                drawRothkoField(fieldX, fieldY, fieldWidth, fieldHeight, topGrad, cornerRadius, textureLevel);
+            }
+
+            // 3. Middle field: Memory, battery, and primary system health
+            ctx.globalCompositeOperation = 'normal';
+            const middleHealth = (health.memory + health.battery + health.voltage) / 3;
+            const middleColors = getHealthColor(middleHealth, 0.85);
+            const middleStart = canvas.height * 0.28;
+            const middleHeight = canvas.height * 0.44;
+
+            for(let i = 0; i < middleColors.length; i++) {
+                const middleGrad = ctx.createRadialGradient(
+                    canvas.width / 2, middleStart + middleHeight / 2,
+                    0,
+                    canvas.width / 2, middleStart + middleHeight / 2,
+                    canvas.width * 0.8
+                );
+                middleGrad.addColorStop(0, middleColors[i]);
+                middleGrad.addColorStop(0.7, middleColors[i].replace(/[\d\.]+\)$/, `${0.6 - i * 0.15})`));
+                middleGrad.addColorStop(1, middleColors[i].replace(/[\d\.]+\)$/, '0.1)'));
+
+                const margin = 15 + i * 8;
+                const fieldX = margin + 5;
+                const fieldY = middleStart + i * 6;
+                const fieldWidth = canvas.width - margin * 2 - 10;
+                const fieldHeight = middleHeight - i * 12;
+                const cornerRadius = 35 - i * 6; // Larger radius for middle field
+                const textureLevel = 0.025 + (middleColors.length - i) * 0.015; // Rich texture
+
+                drawRothkoField(fieldX, fieldY, fieldWidth, fieldHeight, middleGrad, cornerRadius, textureLevel);
+            }
+
+            // 4. Bottom field: Storage and load metrics
+            ctx.globalCompositeOperation = 'multiply';
+            const bottomHealth = (health.storage + health.load) / 2;
+            const bottomColors = getHealthColor(bottomHealth, 0.8);
+            const bottomStart = canvas.height * 0.7;
+            const bottomHeight = canvas.height * 0.3;
+
+            for(let i = 0; i < bottomColors.length; i++) {
+                const bottomGrad = ctx.createLinearGradient(0, bottomStart, 0, canvas.height);
+                bottomGrad.addColorStop(0, bottomColors[i].replace(/[\d\.]+\)$/, '0)'));
+                bottomGrad.addColorStop(0.3, bottomColors[i]);
+                bottomGrad.addColorStop(1, bottomColors[i]);
+
+                const fieldX = 8;
+                const fieldY = bottomStart - i * 3;
+                const fieldWidth = canvas.width - 16;
+                const fieldHeight = bottomHeight + 10;
+                const cornerRadius = 28 - i * 4; // Rounded bottom field
+                const textureLevel = 0.03 + (bottomColors.length - i) * 0.01;
+
+                drawRothkoField(fieldX, fieldY, fieldWidth, fieldHeight, bottomGrad, cornerRadius, textureLevel);
+            }
+
+            // 5. Enhanced canvas texture for overall materiality
+            ctx.globalCompositeOperation = 'overlay';
+            const stressLevel = 100 - overallHealth;
+
+            // Add paint-like texture variations across entire canvas
+            const canvasImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const canvasData = canvasImageData.data;
+
+            for(let i = 0; i < canvasData.length; i += 4) {
+                // Base canvas texture (simulating canvas weave)
+                if(Math.random() < 0.008) {
+                    const weaveNoise = (Math.random() - 0.5) * 15;
+                    canvasData[i] = Math.max(0, Math.min(255, canvasData[i] + weaveNoise));
+                    canvasData[i + 1] = Math.max(0, Math.min(255, canvasData[i + 1] + weaveNoise));
+                    canvasData[i + 2] = Math.max(0, Math.min(255, canvasData[i + 2] + weaveNoise));
+                }
+
+                // Stress-based texture (more chaos = more stress)
+                if(Math.random() < (stressLevel / 10000)) {
+                    const stressNoise = (Math.random() - 0.5) * 25;
+                    canvasData[i] = Math.max(0, Math.min(255, canvasData[i] + stressNoise));
+                    canvasData[i + 1] = Math.max(0, Math.min(255, canvasData[i + 1] + stressNoise));
+                    canvasData[i + 2] = Math.max(0, Math.min(255, canvasData[i + 2] + stressNoise));
+                }
+
+                // Color depth variations (simulating paint thickness)
+                if(Math.random() < 0.005) {
+                    const depthFactor = 0.95 + (Math.random() * 0.1); // ±5% variation
+                    canvasData[i] = Math.max(0, Math.min(255, canvasData[i] * depthFactor));
+                    canvasData[i + 1] = Math.max(0, Math.min(255, canvasData[i + 1] * depthFactor));
+                    canvasData[i + 2] = Math.max(0, Math.min(255, canvasData[i + 2] * depthFactor));
+                }
+            }
+
+            ctx.putImageData(canvasImageData, 0, 0);
+
+            return {
+                url: canvas.toDataURL('image/png', 0.95),
+                title: title,
+                description: description,
+                healthIndex: overallHealth.toFixed(1),
+                year: "Real-time System Health Visualization",
+                about: `Heat mapping: Green nuances indicate healthy subsystems (more layers = better health). As systems degrade, color nuances reduce toward singular red tones. Current composition uses ${healthColors.length} primary color variations reflecting ${overallHealth > 80 ? 'optimal' : overallHealth > 60 ? 'degraded' : overallHealth > 40 ? 'warning' : 'critical'} system state.`
+            };
+        }
+
+        function showRothkoPainting() {
+            const modal = document.getElementById('rothkoModal');
+            const painting = document.getElementById('rothkoPainting');
+            const description = document.getElementById('rothkoDescription');
+
+            // Generate heat-mapped Rothko painting based on current system values
+            generateHeatMappedRothko().then(paintingData => {
+                // Update painting image
+                painting.src = paintingData.url;
+
+                // Update description
+                description.innerHTML = `
+                    <h2>${paintingData.title}</h2>
+                    <p><strong>System Health Index:</strong> ${paintingData.healthIndex}%</p>
+                    <p>${paintingData.description}</p>
+                    <p><strong>Heat Map Legend:</strong> ${paintingData.about}</p>
+                `;
+
+                // Show modal and add body class for translucent effect
+                modal.classList.add('active');
+                document.body.classList.add('rothko-modal-open');
+                modal.scrollTop = 0;
+            });
+        }
+
+        // No scroll listener needed - only tap to close on painting
+
+        function closeRothkoModal() {
+            const modal = document.getElementById('rothkoModal');
+            modal.classList.remove('active');
+            document.body.classList.remove('rothko-modal-open');
+        }
+
+        // USB Power Management Functions
+        async function loadUsbStatus() {
+            try {
+                const response = await fetch('/api/usb-power', { credentials: 'include' });
+                const data = await response.json();
+
+                document.getElementById('usbPowerEnabled').checked = data.usb_power_enabled;
+
+                const statusInfo = document.getElementById('usbStatusInfo');
+                statusInfo.innerHTML = `
+                    <div class="status-item">
+                        <span class="status-label">High Current USB</span>
+                        <span class="status-value ${data.high_current_mode ? 'success' : 'error'}">
+                            ${data.high_current_mode ? 'Enabled' : 'Disabled'}
+                        </span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Warnings Status</span>
+                        <span class="status-value ${data.warnings_disabled ? 'warning' : 'success'}">
+                            ${data.warnings_disabled ? 'Disabled' : 'Active'}
+                        </span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Configuration</span>
+                        <span class="status-value">/boot/firmware/config.txt</span>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Failed to load USB status:', error);
+                document.getElementById('usbStatusInfo').innerHTML = `
+                    <div class="status-item">
+                        <span class="status-label">Error</span>
+                        <span class="status-value error">Failed to load USB status</span>
+                    </div>
+                `;
+            }
+        }
+
+        async function testUsbPower() {
+            const enabled = document.getElementById('usbPowerEnabled').checked;
+            const button = document.getElementById('testUsbBtn');
+
+            button.disabled = true;
+            button.textContent = 'Applying...';
+
+            try {
+                const response = await fetch('/api/usb-power', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ enable: enabled })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    if (confirm(`USB power ${enabled ? 'enabled' : 'disabled'}. System reboot required to take effect. Reboot now?`)) {
+                        alert('Reboot functionality not implemented yet. Please reboot manually: sudo reboot');
+                    }
+                } else {
+                    alert(`Failed to update USB power: ${result.error}`);
+                }
+            } catch (error) {
+                alert(`Error updating USB power: ${error.message}`);
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Test USB Power';
+            }
+        }
+
+        // Throttling Management Functions
+        async function loadThrottlingStatus() {
+            try {
+                const response = await fetch('/api/throttling', { credentials: 'include' });
+                const data = await response.json();
+
+                // Set radio button based on current power level
+                document.getElementById(`powerLevel${data.power_level}`).checked = true;
+
+                const statusDiv = document.getElementById('throttlingCurrentStatus');
+                statusDiv.innerHTML = `
+                    <div class="status-item">
+                        <span class="status-label">Current Power Level</span>
+                        <span class="status-value success">Level ${data.power_level}</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">CPU Governor</span>
+                        <span class="status-value">${data.governor}</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">CPU Frequency Range</span>
+                        <span class="status-value">${(data.min_freq_khz / 1000).toFixed(0)} - ${(data.max_freq_khz / 1000).toFixed(0)} MHz</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Description</span>
+                        <span class="status-value">${data.description}</span>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Failed to load throttling status:', error);
+                document.getElementById('throttlingCurrentStatus').innerHTML = `
+                    <div class="status-item">
+                        <span class="status-label">Error</span>
+                        <span class="status-value error">Failed to load throttling status</span>
+                    </div>
+                `;
+            }
+        }
+
+        async function applyThrottlingLevel() {
+            const selectedLevel = document.querySelector('input[name="powerLevel"]:checked');
+            if (!selectedLevel) {
+                alert('Please select a power level');
+                return;
+            }
+
+            const level = parseInt(selectedLevel.value);
+            const button = document.getElementById('applyThrottlingBtn');
+
+            button.disabled = true;
+            button.textContent = 'Applying...';
+
+            try {
+                const response = await fetch('/api/throttling', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ level: level })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(result.message);
+                    // Reload the status to show updated values
+                    await loadThrottlingStatus();
+                } else {
+                    alert(`Failed to set power level: ${result.error}`);
+                }
+            } catch (error) {
+                alert(`Error setting power level: ${error.message}`);
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Apply Power Level';
+            }
+        }
+
+        // Logout function
+        async function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                try {
+                    const response = await fetch('/api/logout', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include'
+                    });
+
+                    if (response.ok) {
+                        window.location.href = '/login';
+                    } else {
+                        // Force redirect to login on any error
+                        window.location.href = '/login';
+                    }
+                } catch (error) {
+                    // Force redirect to login on connection error
+                    window.location.href = '/login';
+                }
+            }
+        }
+
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
             loadTheme(); // Load saved theme first
+            loadDisplaySettings(); // Load display preferences
             initGauges(); // Initialize circular gauges
             initCharts(); // Initialize line charts
-            fetchData(); // Initial fetch
-            setInterval(fetchData, 5000); // Update every 5 seconds
+            startConnectivityMonitoring(); // Start internet connectivity monitoring
+            initializeSSE(); // Initialize real-time SSE connection
+            
+            // Synchronized ticker updates - wait for scroll completion
+            startSynchronizedTicker();
+            
+            // Update screen info on window resize
+            window.addEventListener('resize', updateScreenInfo);
         });
     </script>
 </body>

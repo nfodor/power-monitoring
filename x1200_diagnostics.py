@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
-
 import os
 import time
 import smbus
+import subprocess
 
 def check_i2c_setup():
     """Check I2C configuration"""
@@ -20,9 +19,30 @@ def check_i2c_setup():
                 print("   ❌ I2C not enabled - run: sudo raspi-config")
     except:
         print("   ⚠️  Could not check /boot/config.txt")
-    
+
+    # Check I2C permissions
+    print("\n2. Checking I2C permissions...")
+    if os.path.exists('/dev/i2c-1'):
+        if os.access('/dev/i2c-1', os.R_OK | os.W_OK):
+            print("   ✅ R/W permissions are OK for /dev/i2c-1")
+        else:
+            print("   ❌ R/W permissions are NOT OK for /dev/i2c-1. Try running as root or adding user to i2c group.")
+    else:
+        print("   ⚠️  /dev/i2c-1 not found.")
+
+    # Check kernel modules
+    print("\n3. Checking kernel modules...")
+    try:
+        lsmod = subprocess.check_output(["lsmod"]).decode("utf-8")
+        if "i2c_bcm2708" in lsmod or "i2c_bcm2835" in lsmod:
+            print("   ✅ I2C kernel module is loaded.")
+        else:
+            print("   ❌ I2C kernel module is not loaded. Add 'i2c-dev' to /etc/modules.")
+    except:
+        print("   ⚠️  Could not check kernel modules.")
+
     # Check I2C devices
-    print("\n2. Available I2C buses:")
+    print("\n4. Available I2C buses:")
     for i in range(20):
         try:
             bus = smbus.SMBus(i)
@@ -32,7 +52,7 @@ def check_i2c_setup():
             pass
     
     # Scan all buses for devices
-    print("\n3. Scanning for I2C devices...")
+    print("\n5. Scanning for I2C devices...")
     for bus_num in [0, 1, 4, 11, 13, 14]:
         try:
             bus = smbus.SMBus(bus_num)
@@ -56,7 +76,7 @@ def check_i2c_setup():
 
 def check_x1200_power():
     """Check if X1200 is providing power readings"""
-    print("\n4. Checking X1200 power status...")
+    print("\n6. Checking X1200 power status...")
     
     # Check for X1200 specific files/interfaces
     x1200_paths = [
@@ -82,21 +102,25 @@ def check_x1200_power():
 
 def test_direct_register_access():
     """Test direct register access on detected devices"""
-    print("\n5. Testing direct register access...")
+    print("\n7. Testing direct register access...")
     
     # Test known X1200 configurations
     test_configs = [
-        (11, 0x45), (4, 0x45), (11, 0x5d), (4, 0x5d),
-        (1, 0x40), (11, 0x40)
+        (1, 0x36, "MAX17040G+ Fuel Gauge"),
+        (11, 0x45, "X1200 INA219 Primary"),
+        (4, 0x45, "X1200 INA219 Secondary"),
+        (11, 0x5d, "X1200 MCU/Controller"),
+        (4, 0x5d, "X1200 MCU/Controller Alt"),
+        (1, 0x40, "Standard INA219"),
     ]
     
-    for bus_num, addr in test_configs:
+    for bus_num, addr, name in test_configs:
         try:
             bus = smbus.SMBus(bus_num)
-            print(f"\n   Testing bus {bus_num}, address 0x{addr:02x}")
+            print(f"\n   Testing {name} on bus {bus_num}, address 0x{addr:02x}")
             
             # Try to read common registers
-            for reg in [0x00, 0x01, 0x02, 0x03, 0x04, 0x05]:
+            for reg in [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x08]:
                 try:
                     value = bus.read_word_data(addr, reg)
                     print(f"     Register 0x{reg:02x}: 0x{value:04x} ({value})")
@@ -120,3 +144,5 @@ if __name__ == "__main__":
     print("3. Verify X1200 firmware is up to date")
     print("4. Try: sudo i2cdetect -y 1")
     print("5. Reboot after enabling I2C if needed")
+    print("6. If you see errors like '[Errno 121] Remote I/O error', it may be a hardware issue.")
+    print("7. If you see no devices, check the physical connections and power supply.")

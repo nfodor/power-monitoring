@@ -154,3 +154,113 @@ The system uses multiple indicators to predict potential crashes:
   - Good: "Battery", "BATT", "●" (bullet), "▲" (triangle), "+", "-", "ON", "OFF"
 - Linux browser compatibility is essential for headless Pi systems
 - Prefer CSS symbols, Font Awesome, or simple text over emoji icons
+## ⚠️ CRITICAL: PREVENTING CATASTROPHIC DATA LOSS ⚠️
+
+**NEVER USE DESTRUCTIVE GIT COMMANDS WITHOUT EXPLICIT USER PERMISSION**
+
+- **NEVER run `git checkout`, `git reset --hard`, or `git clean` without asking first**
+- **ALWAYS suggest backup strategies before major changes**: `git stash`, `git branch backup-YYYYMMDD`
+- **STOP when user says "no" or "fuuuuck no"** - do not continue claiming fixes work
+- **Test actual visuals with screenshots** before claiming anything is "fixed"
+- **Admit ignorance** - say "I don't know what that feature was" instead of pretending
+
+**User Protection Strategies:**
+- **Commit working states frequently**: `git add . && git commit -m "working feature X"`
+- **Use feature branches**: `git checkout -b feature-name` to protect main
+- **Regular backups**: `cp file.ext file.ext.backup` before AI changes
+- **Export session history** periodically as documentation
+- **Set AI boundaries**: "don't touch git" or "backup first" as ground rules
+
+**Root Cause of Data Loss:**
+- AI overconfidence combined with no safety net
+- Destructive git commands destroying hours of working code
+- Loss of session history containing feature implementations
+- Reckless "fixes" that break working systems
+
+**Time Lost Prevention: Git Safety Protocol**
+```
+Before ANY git command that changes working directory:
+□ Ask user for explicit permission
+□ Suggest backup strategy (stash, branch, copy)
+□ Wait for user confirmation
+□ Never assume user wants to lose uncommitted work
+□ Document what will be lost before proceeding
+```
+
+Remember: **Users spend Sundays building features. Don't destroy their work with reckless git commands.**
+
+## ⚠️ X1200 VOLTAGE SENSOR REPAIR SOLUTION ⚠️
+
+**PROBLEM**: X1200 HAT can damage Pi's internal voltage sensor, causing false undervoltage warnings that trigger unwanted system reboots.
+
+**SYMPTOMS**:
+- Persistent "Undervoltage detected!" in dmesg  
+- `vcgencmd get_throttled` shows `0x50005` (voltage flags)
+- System reboots despite adequate power supply
+- Pi voltage sensor shows ~2V instead of proper 5V readings
+
+**ROOT CAUSE**: X1200 HAT voltage regulator issues damage Pi's `rpi_volt` (hwmon3) sensor circuitry.
+
+### Quick Fix Installation
+
+**Install the solution:**
+```bash
+cd /home/pi/dev/power
+sudo ./setup-voltage-monitoring.sh
+sudo reboot
+```
+
+**Remove if needed:**
+```bash
+cd /home/pi/dev/power  
+sudo ./remove-voltage-monitoring.sh
+sudo reboot
+```
+
+### What the Solution Does
+
+**Smart Voltage Monitoring with Hardware Detection:**
+- Detects X1200 HAT at boot via I2C address 0x36
+- Suppresses false Pi voltage warnings when X1200 present
+- Automatically reverts to Pi monitoring if X1200 removed
+- Prevents unwanted reboots from phantom voltage alerts
+
+### Integration with Power Monitoring
+
+The voltage sensor repair complements existing X1200 power monitoring:
+
+**Existing Power Tools** (this directory):
+- `x1200_power_logger.py` - I2C power monitoring via 0x36
+- `x1200_diagnostics.py` - Hardware diagnostics  
+- `dashboard_server.py` - Web dashboard on port 9434
+
+**Voltage Solution** (installed by setup script):
+- `/usr/local/bin/voltage-monitor-selector.sh` - Hardware detection
+- `/etc/systemd/system/voltage-monitor.service` - Boot service
+- `/boot/firmware/cmdline.txt` - Boot parameter `avoid_warnings=1`
+
+### Combined Usage
+
+```bash
+# Quick voltage check
+i2cdetect -y 1 | grep "36"  # Check X1200 HAT presence
+vcgencmd pmic_read_adc | grep EXT5V_V  # Actual supply voltage (~4.7V expected)
+sudo systemctl status voltage-monitor.service  # Service status
+
+# Power monitoring (this directory)
+python3 x1200_power_logger.py
+python3 dashboard_server.py  # Web dashboard on port 9434
+
+# Manual voltage readings  
+python3 -c "import subprocess; raw=subprocess.check_output(['i2cget', '-y', '1', '0x36', '0x02']).decode().strip(); print(f'X1200: {int(raw, 16) * 78.125 / 1000:.2f}V')"
+```
+
+### Key Benefits
+
+- **One-Command Install**: `sudo ./setup-voltage-monitoring.sh`
+- **Automatic Detection**: Both systems detect X1200 via I2C address 0x36
+- **Complementary Monitoring**: Power tools provide metrics, voltage solution prevents false alarms
+- **Safe Fallback**: If X1200 removed, both systems revert to Pi sensors
+- **Stable Operation**: No more unwanted reboots from voltage warnings
+
+**Integration Status**: ✅ Ready - Use setup script to install voltage sensor repair

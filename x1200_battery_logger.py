@@ -1,170 +1,14 @@
-#!/usr/bin/env python3
-
 import time
 import csv
-import smbus
 import psutil
 import os
 from datetime import datetime
 from bypass_notifier import BypassNotifier
-
-class X1200BatteryMonitor:
-    """Monitor Geekworm X1200 UPS using MAX17040G+ fuel gauge"""
-    
-    def __init__(self):
-        self.bus = None
-        self.connected = False
-        self.device_addr = 0x36  # MAX17040G+ fuel gauge address
-        
-        # MAX17040G+ register addresses
-        self.VCELL_REG = 0x02    # Battery voltage
-        self.SOC_REG = 0x04      # State of charge (%)
-        self.MODE_REG = 0x06     # Mode register
-        self.VERSION_REG = 0x08  # Version register
-        self.CONFIG_REG = 0x0C   # Configuration register
-        self.COMMAND_REG = 0xFE  # Command register
-        
-        # Initialize bypass notifier for WireGuard integration
-        self.bypass_notifier = BypassNotifier()
-        
-        self.connect()
-    
-    def connect(self):
-        """Connect to X1200 MAX17040G+ fuel gauge"""
-        # Try different I2C buses where X1200 might be connected
-        for bus_num in [1, 11, 4]:
-            try:
-                print(f"Trying X1200 MAX17040G+ on I2C bus {bus_num} at address 0x{self.device_addr:02x}")
-                bus = smbus.SMBus(bus_num)
-                
-                # Test communication by reading version register
-                version = bus.read_word_data(self.device_addr, self.VERSION_REG)
-                version = ((version & 0xFF) << 8) | ((version & 0xFF00) >> 8)  # Swap bytes
-                
-                print(f"✅ Connected to X1200 MAX17040G+ (version: 0x{version:04x})")
-                self.bus = bus
-                self.bus_num = bus_num
-                self.connected = True
-                return True
-                
-            except Exception as e:
-                if bus:
-                    bus.close()
-                continue
-        
-        print("❌ Could not connect to X1200 MAX17040G+ fuel gauge")
-        return False
-    
-    def read_word_swapped(self, register):
-        """Read word data with byte swapping for MAX17040G+"""
-        if not self.connected:
-            return None
-            
-        try:
-            data = self.bus.read_word_data(self.device_addr, register)
-            # MAX17040G+ returns MSB first, but SMBus expects LSB first
-            return ((data & 0xFF) << 8) | ((data & 0xFF00) >> 8)
-        except:
-            return None
-    
-    def get_battery_voltage(self):
-        """Get battery voltage in volts"""
-        vcell = self.read_word_swapped(self.VCELL_REG)
-        if vcell is not None:
-            # VCELL register: voltage = value * 1.25mV / 16
-            return (vcell >> 4) * 1.25 / 1000.0
-        return None
-    
-    def get_battery_percentage(self):
-        """Get battery state of charge as percentage"""
-        soc = self.read_word_swapped(self.SOC_REG)
-        if soc is not None:
-            # SOC register: percentage = value / 256
-            return soc / 256.0
-        return None
-    
-    def get_power_data(self):
-        """Get comprehensive power data"""
-        if not self.connected:
-            return None
-            
-        data = {
-            'timestamp': datetime.now().isoformat(),
-            'battery_voltage': self.get_battery_voltage(),
-            'battery_percentage': self.get_battery_percentage(),
-            'cpu_percent': 0,
-            'cpu_temp': 0,
-            'memory_percent': 0,
-            'load_avg': 0,
-            'external_power': True,  # TODO: Add GPIO6 detection for actual external power status
-            'estimated_runtime_minutes': None
-        }
-        
-        # Add system metrics for power consumption correlation
-        try:
-            data['cpu_percent'] = psutil.cpu_percent()
-            data['memory_percent'] = psutil.virtual_memory().percent
-            data['load_avg'] = os.getloadavg()[0]
-            
-            # CPU temperature
-            try:
-                with open('/sys/class/thermal/thermal_zone0/temp', 'r') as f:
-                    data['cpu_temp'] = float(f.read().strip()) / 1000.0
-            except:
-                pass
-                
-        except Exception as e:
-            print(f"Warning: Could not read system metrics: {e}")
-        
-        return data
-    
-    def detect_power_issues(self, data, history):
-        """Detect power-related issues and potential crash conditions"""
-        alerts = []
-        
-        if data['battery_voltage'] is not None:
-            # Critical voltage levels for Li-ion batteries
-            if data['battery_voltage'] < 3.0:
-                alerts.append("CRITICAL_LOW_VOLTAGE")
-            elif data['battery_voltage'] < 3.3:
-                alerts.append("LOW_VOLTAGE_WARNING")
-            elif data['battery_voltage'] > 4.3:
-                alerts.append("HIGH_VOLTAGE_WARNING")
-        
-        if data['battery_percentage'] is not None:
-            # Battery percentage alerts
-            if data['battery_percentage'] < 10:
-                alerts.append("CRITICAL_LOW_BATTERY")
-            elif data['battery_percentage'] < 20:
-                alerts.append("LOW_BATTERY_WARNING")
-        
-        # System load alerts (high CPU = high power draw)
-        if data['cpu_percent'] > 80:
-            alerts.append(f"HIGH_CPU_LOAD_{data['cpu_percent']:.0f}%")
-        
-        if data['cpu_temp'] > 70:
-            alerts.append(f"HIGH_TEMPERATURE_{data['cpu_temp']:.1f}C")
-        
-        # Rapid battery drain detection
-        if len(history) >= 10:
-            old_percentage = history[-10]['battery_percentage']
-            current_percentage = data['battery_percentage']
-            
-            if old_percentage and current_percentage:
-                drain_rate = (old_percentage - current_percentage) / 10  # % per reading
-                if drain_rate > 1.0:  # More than 1% per reading (5 seconds)
-                    alerts.append(f"RAPID_BATTERY_DRAIN_{drain_rate:.1f}%_per_5s")
-        
-        return alerts
-    
-    def close(self):
-        """Close I2C connection"""
-        if self.bus:
-            self.bus.close()
+from x1200_common import X1200Monitor
 
 def main():
     """Main X1200 monitoring function"""
-    monitor = X1200BatteryMonitor()
+    monitor = X1200Monitor()
     
     if not monitor.connected:
         print("❌ Failed to connect to X1200. Check:")
@@ -309,3 +153,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

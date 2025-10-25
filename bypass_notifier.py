@@ -407,7 +407,7 @@ class BypassNotifier:
             runtime_seconds = (datetime.utcnow() - self.battery_runtime_start).total_seconds()
             payload["battery_runtime_minutes"] = runtime_seconds / 60
         
-        self.notify_bypass_server(payload)
+        self.notify_bypass_servers(payload, "event")
     
     def log_battery_runtime(self, runtime_minutes: float, final_battery_percent: float):
         """Log battery runtime data to CSV file"""

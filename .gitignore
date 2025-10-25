@@ -1,0 +1,22 @@
+# Environment-specific secrets and generated files
+alert_config.json
+unit_config.json
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Session logs and artifacts
+chat_part_*
+session_part_*
+SESSION_SUMMARY.md
+2025-08-03-this-session-is-being-continued-from-a-previous-co.txt
+
+# Local assets and binaries
+burnedmoffet.jpeg
+99669B7C-552F-437A-8824-1A874EDCAACE.jpeg
+LCD-show/
+dashboard_server.py.tmp.*
+
+# Logs
+*.log
