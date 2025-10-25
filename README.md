@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="dashboard.jpg" alt="Power dashboard overview" width="750" />
+  <img src="README-demo.gif" alt="Project Rhotko walkthrough" width="750" />
 </p>
 
 <p align="center">
